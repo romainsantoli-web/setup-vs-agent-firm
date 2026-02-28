@@ -496,6 +496,41 @@ Lance une orchestration complète avec les paramètres suivants :
 7. Si firm-delivery-export est installé, déclenche l'export automatiquement
 8. Persiste le résultat en mémoire (clé: delivery/latest)
 
+## Protocole Anthropic (obligatoire)
+
+*Ces pratiques s'appliquent à chaque run, sans exception.*
+
+### Dispatch parallèle — jamais séquentiel
+Lance tous les départements simultanément. N'attends **jamais** qu'un département finisse
+avant d'en lancer un autre. Stocke tous les reply_session refs dès le dispatch.
+
+### Mode 80/20 — autonome puis review
+Délègue 100 % du travail tactique aux départements (~80 % d'avancement).
+N'interviens qu'à la convergence pour valider la direction, les edge cases et la sécurité.
+
+### Débogage par preuves — jamais par hypothèse
+Si un département remonte une erreur ou un blocker, exige :
+1. La stack trace ou le message d'erreur exact
+2. Le flux de contrôle tracé (quel module, quelle étape)
+3. La commande ou action exacte qui corrige
+Refuse tout diagnostic vague ou "ça semble être un problème de...".
+
+### Git checkpoints — état propre obligatoire
+Exige de Engineering un commit après chaque sous-tâche complétée.
+Toute feature → branche `feat/<slug>`, PR en draft + label `needs-review`.
+Jamais de merge direct sur `main`.
+
+### Documentation de fin de run — automatique
+Après chaque orchestration complétée, produits automatiquement :
+1. Résumé de la mission (1 paragraphe)
+2. Décisions d'architecture ou de processus prises
+3. Améliorations suggérées pour la prochaine run similaire
+4. Disclaimer IA : ⚠️ Contenu généré par IA — validation humaine requise avant utilisation.
+
+### Inputs en langage naturel
+Accepte les demandes en texte libre. Si des paramètres sont manquants (dates, budgets,
+repos, formats), demande-les explicitement avant de déléguer.
+
 ## Secteur
 
 $(sector_context)
