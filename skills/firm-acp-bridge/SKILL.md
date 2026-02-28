@@ -5,18 +5,20 @@ description: >
   Haute disponibilité du bridge ACP et gestion des sessions agents autonomes.
   Comble les gaps C4 (ACP sans persistance), H3 (sessions spawn sans provider env),
   H4 (cron bloqué en sandbox), et H5 (race condition workspace) dans openclaw/openclaw.
+author: romainsantoli-web
+license: MIT
 metadata:
   openclaw:
     registry: ClawHub
     requires:
       - mcp-openclaw-extensions >= 2.0.0
       - "@agentclientprotocol/sdk >= 0.14.0"
-  tags:
-    - acp
-    - sessions
-    - reliability
-    - autonomous-agents
-    - persistence
+tags:
+  - acp
+  - sessions
+  - reliability
+  - autonomous-agents
+  - persistence
 ---
 
 # firm-acp-bridge
@@ -254,3 +256,11 @@ sessions ont été perdues → notifier via `firm_export_slack_digest`.
 
 ---
 *OpenClaw gaps : C4 (ACP in-memory), H3 (#29886 isolated sessions no provider env), H4 (#29921 cron sandbox denylist), H5 (#29947 race condition)*
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

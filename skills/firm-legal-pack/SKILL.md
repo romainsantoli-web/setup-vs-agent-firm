@@ -106,3 +106,11 @@ Use firm-orchestration with:
 | SOC 2 | Security & Compliance quality service |
 | ISO 27001 | Security audit trail + documentation ops |
 | Contract law | Contracting service + IP legal |
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

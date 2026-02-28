@@ -6,17 +6,19 @@ description: >
   Détecte et remédie aux 4 gaps critiques/hauts identifiés dans openclaw/openclaw :
   SQL injection (C1), sandbox off par défaut (C2), session secret éphémère (C3),
   absence de rate limiting (H8), et documentation sécurité incomplète (M10).
+author: romainsantoli-web
+license: MIT
 metadata:
   openclaw:
     registry: ClawHub
     requires:
       - mcp-openclaw-extensions >= 2.0.0
-  tags:
-    - security
-    - audit
-    - compliance
-    - hardening
-    - devops
+tags:
+  - security
+  - audit
+  - compliance
+  - hardening
+  - devops
 ---
 
 # firm-security-audit
@@ -193,3 +195,11 @@ Ajouter dans le workflow GitHub Actions :
 
 ---
 *OpenClaw gaps : C1 (#29951 SQL injection), C2 (sandbox off), C3 (#29955 session secret), H8 (no rate limit)*
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

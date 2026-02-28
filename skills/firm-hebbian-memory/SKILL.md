@@ -6,20 +6,22 @@ description: >
   de sessions en patterns pondérés qui renforcent ou atrophient les règles de
   travail selon l'usage réel. Implémente le Cahier des Charges v1.0.0 "Système
   de Mémoire Adaptative Hebbienne + Base Vectorielle pour Claude.md".
+author: romainsantoli-web
+license: MIT
 metadata:
   openclaw:
     registry: ClawHub
     requires:
       - mcp-openclaw-extensions >= 1.2.0
     cdc_version: "1.0.0"
-  tags:
-    - hebbian
-    - memory
-    - adaptive
-    - pgvector
-    - sessions
-    - pii-stripping
-    - neuroscience
+tags:
+  - hebbian
+  - memory
+  - adaptive
+  - pgvector
+  - sessions
+  - pii-stripping
+  - neuroscience
 ---
 
 # firm-hebbian-memory
@@ -229,3 +231,11 @@ Si le projet utilise `pi-coding-agent`, ajouter dans sa config :
 - CDC : `cahier_des_charges_memoire_hebbienne.md` v1.0.0
 - Module : `src/hebbian_memory.py`
 - Modèles : 8 classes Pydantic dans `src/models.py`
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`
