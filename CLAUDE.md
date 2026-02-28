@@ -108,7 +108,8 @@ setup-vs-agent-firm/
 │   ├── firm-delivery-export/        ← pipeline delivrables (gap #6)
 │   ├── firm-security-audit/         ← séquence audit 5 étapes + remediations (C1,C2,C3,H8)
 │   ├── firm-acp-bridge/             ← protocoles ACP persistence + cron + locking (C4,H3,H4,H5)
-│   └── firm-hebbian-memory/         ← mémoire adaptative hebbienne (CDC v1.0.0)
+│   ├── firm-hebbian-memory/         ← mémoire adaptative hebbienne (CDC v1.0.0)
+│   └── firm-a2a-bridge/             ← A2A Protocol v1.0 RC bridge (6 tools)
 ├── souls/                           ← 5 SOUL.md (CEO, CFO, CTO, Legal, HR)
 ├── .github/workflows/
 │   └── openclaw-review.yml          ← Quality dept review on every PR
@@ -129,10 +130,13 @@ setup-vs-agent-firm/
     │   ├── n8n_bridge.py            ← 2 tools n8n workflow bridge (T8)
     │   ├── browser_audit.py         ← 1 tool browser automation (T10)
     │   ├── hebbian_memory.py        ← 8 tools mémoire hebbienne (CDC §3-5)
-    │   ├── models.py                ← 75 modèles Pydantic + TOOL_MODELS + cross-field validators
-    │   └── main.py                  ← 19 modules, 75 tools enregistrés
+    │   ├── a2a_bridge.py            ← 6 tools A2A Protocol v1.0 RC (G1-G6)
+    │   ├── platform_audit.py        ← 8 tools platform alignment 2026.2 (G7-G14)
+    │   ├── ecosystem_audit.py       ← 7 tools ecosystem differentiation (G15-G21)
+    │   ├── models.py                ← 96 modèles Pydantic + TOOL_MODELS + cross-field validators
+    │   └── main.py                  ← 21 modules, 96 tools enregistrés, v2.0.0
     └── tests/
-        └── test_smoke.py            ← 207 tests, 100% pass
+        └── test_smoke.py            ← 264 tests, 100% pass
 ```
 
 ---
@@ -159,6 +163,9 @@ setup-vs-agent-firm/
 | n8n Bridge | `openclaw_n8n_workflow_export`, `openclaw_n8n_workflow_import` | n8n workflow export/import (T8) |
 | Browser Audit | `openclaw_browser_context_check` | Playwright/Puppeteer headless config validation (T10) |
 | Hebbian Memory | `openclaw_hebbian_{harvest,weight_update,analyze,status,layer_validate,pii_check,decay_config_check,drift_check}` | Mémoire adaptative hebbienne : harvest JSONL, poids Layer 2, co-activations, PII stripping, drift detection (CDC §3-5) |
+| A2A Bridge | `openclaw_a2a_{card_generate,card_validate,task_send,task_status,push_config,discovery}` | A2A Protocol v1.0 RC — agent cards, task lifecycle, push notifications, discovery (G1-G6) |
+| Platform Audit | `openclaw_{secrets_v2_audit,agent_routing_check,voice_security_check,trust_model_check,autoupdate_check,plugin_sdk_check,content_boundary_check,sqlite_vec_check}` | Secrets v2 + routing + voice + trust + autoupdate + plugin SDK + content boundaries + sqlite-vec (G7-G14) |
+| Ecosystem Audit | `openclaw_{mcp_firewall_check,rag_pipeline_check,sandbox_exec_check,context_health_check,provenance_tracker,cost_analytics,token_budget_optimizer}` | MCP firewall + RAG + sandbox + context health + provenance + cost + token budget (G15-G21) |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash
@@ -318,6 +325,35 @@ PR #3 (draft) mise à jour sur `feat/phase-5a` — 4 commits séquentiels.
 **Améliorations appliquées à ce CLAUDE.md :**
 - Structure projet mise à jour : 17 modules, 67 tools, 160 tests
 - Table outils : 7 nouvelles lignes (Observability, Memory, Orchestration, i18n, Skill, n8n, Browser)
+- Ce journal de session ajouté
+
+---
+
+### Session du 5 mars 2026 — Phase 7 Disruption: 21 nouveaux tools (feat/phase-7-disruption)
+
+**Accompli :**
+Implémentation complète de la Phase 7 du roadmap de disruption (ANALYSIS-REPORT-v6.md).
+3 nouveaux modules Python : `a2a_bridge.py` (6 tools A2A Protocol v1.0 RC), `platform_audit.py`
+(8 tools alignement platform 2026.2), `ecosystem_audit.py` (7 tools différenciation écosystème).
+Total porté à **96 tools / 21 modules / 264 tests à 100 % / v2.0.0**. Protocol MCP upgradé
+à `2025-11-25`. SKILL.md `firm-a2a-bridge` créée. Branches pushées sur les deux repos.
+
+**Décisions d'architecture :**
+- **A2A Card generation from SOUL.md** : parsing frontmatter YAML + extraction des skills
+  via regex `## Skills` — produit un agent card JSON conforme A2A v1.0 RC
+- **SSRF protection** : localhost/127.0.0.1/0.0.0.0/::1 bloqués dans `task_send` et `push_config`
+- **In-memory stores** : `_TASKS` et `_PUSH_CONFIGS` — suffisant pour un MCP server single-process
+- **Platform tools return pattern** : `{ok, severity, findings, finding_count, config_path}`
+  — cohérent avec les patterns existants (runtime_audit, gateway_hardening)
+- **Ecosystem tools `session_data` dict** : les tools context/cost/budget acceptent un dict
+  `session_data` au lieu de params plats — plus flexible pour l'évolution de l'API
+- **Provenance tracker** : chaîne de hashes SHA-256 append-only + vérification d'intégrité
+- **n8n→MCP firewall** : vérification que les policies MCP couvrent les tool calls
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : 3 nouveaux modules + 96 models + 21 modules + 264 tests
+- Table outils : 3 nouvelles lignes (A2A Bridge 6 tools, Platform Audit 8 tools, Ecosystem Audit 7 tools)
+- Skills : `firm-a2a-bridge` ajouté
 - Ce journal de session ajouté
 
 ---
