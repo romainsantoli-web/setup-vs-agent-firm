@@ -13,7 +13,7 @@
 1. [Architecture](#architecture)
 2. [Prerequisites](#prerequisites)
 3. [Quick-start (5 minutes)](#quick-start)
-4. [What was built — the 26 gaps](#what-was-built--the-26-gaps)
+4. [What was built — the 33 gaps](#what-was-built--the-33-gaps)
 5. [Skills (ClawHub)](#skills-clawhub)
 6. [Factory — generate a firm in one command](#factory--generate-a-firm-in-one-command)
 7. [MCP server — mcp-openclaw-extensions](#mcp-server--mcp-openclaw-extensions)
@@ -109,7 +109,7 @@ bash scripts/status.sh
 
 ---
 
-## What was built — the 26 gaps
+## What was built — the 33 gaps
 
 ### Phase 1 — Infrastructure (gaps 1-8)
 
@@ -149,6 +149,18 @@ bash scripts/status.sh
 | M7 | 🟡 MED | Logging verbose / missing redactPatterns | `openclaw_log_config_check` |
 | M8 | 🟡 MED | ~/.openclaw/workspace integrity unchecked | `openclaw_workspace_integrity_check` |
 | M9 | 🟡 MED | Factory generates no CONTRIBUTING.md | `factory/generate-firm.sh` |
+
+### Phase 3 — Runtime & Config Audit (gaps 27-33, CHANGELOG ≤ 2026.2.27)
+
+| ID | Sev | Gap | Coverage |
+|----|-----|-----|----------|
+| C5 | 🔴 CRI | Node.js < 22.12.0 (CVE-2025-59466, CVE-2026-21636) | `openclaw_node_version_check` |
+| C6 | 🔴 CRI | Hardcoded secrets in openclaw.json (no `openclaw secrets` workflow, 2026.2.26) | `openclaw_secrets_workflow_check` |
+| H9 | 🟠 HIGH | HTTP security headers absent on public bind (HSTS, X-Content-Type-Options, Referrer-Policy) | `openclaw_http_headers_check` |
+| H10 | 🟠 HIGH | `gateway.nodes.allowCommands` dangerous override (CRITICAL if remote-exposed) | `openclaw_nodes_commands_check` |
+| H11 | 🟠 HIGH | Trusted-proxy misconfigured: bind + trustedProxies + auth mode incoherent | `openclaw_trusted_proxy_check` |
+| M15 | 🟡 MED | Session disk budget not configured (`session.maintenance.maxDiskBytes`) | `openclaw_session_disk_budget_check` |
+| M16 | 🟡 MED | `dmPolicy=allowlist` with empty `allowFrom` (fail-open, 9 channels checked) | `openclaw_dm_allowlist_check` |
 
 ---
 

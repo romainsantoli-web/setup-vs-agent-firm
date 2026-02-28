@@ -111,10 +111,11 @@ setup-vs-agent-firm/
     │   ├── acp_bridge.py            ← 6 tools ACP + fleet (C4,H3,H4,H5)
     │   ├── reliability_probe.py     ← 4 tools fiabilité + ADR (H6,H7,M1,M5,M6)
     │   ├── gateway_hardening.py     ← 5 tools Gateway auth + credentials + webhooks (H2,M3,M4,M7,M8)
-    │   ├── models.py                ← 35 modèles Pydantic + TOOL_MODELS
-    │   └── main.py                  ← 7 modules, 35 tools enregistrés
+    │   ├── runtime_audit.py         ← 7 tools runtime & config (C5,C6,H9,H10,H11,M15,M16)
+    │   ├── models.py                ← 42 modèles Pydantic + TOOL_MODELS
+    │   └── main.py                  ← 8 modules, 42 tools enregistrés
     └── tests/
-        └── test_smoke.py            ← 52 tests, 100% pass
+        └── test_smoke.py            ← 69 tests, 100% pass
 ```
 
 ---
@@ -130,6 +131,7 @@ setup-vs-agent-firm/
 | ACP Bridge | `acp_session_{persist,restore,list_active}`, `fleet_session_inject_env`, `fleet_cron_schedule`, `openclaw_workspace_lock` | Persistence sessions + cron + locking |
 | Reliability | `openclaw_gateway_probe`, `openclaw_doc_sync_check`, `openclaw_channel_audit`, `firm_adr_generate` | Fiabilité + ADR + dépendances |
 | Gateway Hardening | `openclaw_gateway_auth_check`, `openclaw_credentials_check`, `openclaw_webhook_sig_check`, `openclaw_log_config_check`, `openclaw_workspace_integrity_check` | Auth Gateway + credentials Baileys + webhooks HMAC + logs + workspace |
+| Runtime Audit | `openclaw_node_version_check`, `openclaw_secrets_workflow_check`, `openclaw_http_headers_check`, `openclaw_nodes_commands_check`, `openclaw_trusted_proxy_check`, `openclaw_session_disk_budget_check`, `openclaw_dm_allowlist_check` | Node.js version + secrets + headers + nodes.allowCommands + trusted-proxy + disk budget + dmPolicy (C5,C6,H9,H10,H11,M15,M16) |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash
@@ -177,6 +179,31 @@ passent à 100 %. Branche `feat/close-openclaw-gaps` prête pour review.
 - Table outils étendue : 30 tools en 6 catégories (était 3 catégories)
 - Règle 3 : seuil coverage porté à 80 %
 - Ce journal de session ajouté (section 📓)
+
+---
+
+### Session du 2 mars 2026 — Runtime Audit + 7 nouveaux gaps (feat/close-openclaw-gaps-v2)
+
+**Accompli :**
+Audit du CHANGELOG openclaw jusqu'à la version 2026.2.27. Identification et fermeture de 7 nouveaux
+gaps (2 CRITICAL, 3 HIGH, 2 MEDIUM) via un nouveau module Python `runtime_audit.py` (7 tools MCP).
+Total porté à **42 tools / 8 modules / 69 tests à 100 %**. Branche `feat/close-openclaw-gaps-v2`
+prête pour review sur les deux repos.
+
+**Décisions d'architecture :**
+- **`subprocess.run([node_bin, "--version"])`** pour C5 : vérification runtime du binaire Node.js
+  (pas de parsing de package.json — reflet de la version réellement exécutée)
+- **Exclusion des placeholders `$` et `{{`** pour C6 : pattern `$ENV_VAR` et `{{secret}}` indica-
+  teurs légitimes de workflows secrets — false-positive rate réduit à ~0
+- **HSTS uniquement sur bind non-loopback** pour H9 : HSTS sur loopback = INFO seulement, pas un
+  vrai risque de sécurité
+- **9 canaux DM vérifiés** pour M16 : telegram, whatsapp, signal, imessage, discord, slack,
+  line, matrix, feishu — liste exhaustive des canaux supportés par OpenClaw 2026
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : `runtime_audit.py` + 42 models + 8 modules + 69 tests
+- Table outils : ligne "Runtime Audit" ajoutée (7 tools C5,C6,H9,H10,H11,M15,M16)
+- Ce journal de session ajouté
 
 ---
 
