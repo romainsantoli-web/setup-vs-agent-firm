@@ -120,10 +120,17 @@ setup-vs-agent-firm/
     │   ├── runtime_audit.py         ← 7 tools runtime & config (C5,C6,H9,H10,H11,M15,M16)
     │   ├── advanced_security.py     ← 8 tools sécurité avancée (C7,C8,C9,H12,H13,H14,H15,H16)
     │   ├── config_migration.py      ← 5 tools migration config (H17,H18,H19,M17,M21)
-    │   ├── models.py                ← 55 modèles Pydantic + TOOL_MODELS
-    │   └── main.py                  ← 10 modules, 55 tools enregistrés
+    │   ├── observability.py         ← 2 tools observabilité (T1,T6)
+    │   ├── memory_audit.py          ← 2 tools mémoire (T3,T9)
+    │   ├── agent_orchestration.py   ← 2 tools orchestration (T4)
+    │   ├── i18n_audit.py            ← 1 tool i18n (T5)
+    │   ├── skill_loader.py          ← 2 tools skill loading (T7)
+    │   ├── n8n_bridge.py            ← 2 tools n8n workflow bridge (T8)
+    │   ├── browser_audit.py         ← 1 tool browser automation (T10)
+    │   ├── models.py                ← 67 modèles Pydantic + TOOL_MODELS + cross-field validators
+    │   └── main.py                  ← 17 modules, 67 tools enregistrés
     └── tests/
-        └── test_smoke.py            ← 98 tests, 100% pass
+        └── test_smoke.py            ← 160 tests, 100% pass
 ```
 
 ---
@@ -142,6 +149,13 @@ setup-vs-agent-firm/
 | Runtime Audit | `openclaw_node_version_check`, `openclaw_secrets_workflow_check`, `openclaw_http_headers_check`, `openclaw_nodes_commands_check`, `openclaw_trusted_proxy_check`, `openclaw_session_disk_budget_check`, `openclaw_dm_allowlist_check` | Node.js version + secrets + headers + nodes.allowCommands + trusted-proxy + disk budget + dmPolicy (C5,C6,H9,H10,H11,M15,M16) |
 | Advanced Security | `openclaw_secrets_lifecycle_check`, `openclaw_channel_auth_canon_check`, `openclaw_exec_approval_freeze_check`, `openclaw_hook_session_routing_check`, `openclaw_config_include_check`, `openclaw_config_prototype_check`, `openclaw_safe_bins_profile_check`, `openclaw_group_policy_default_check` | External Secrets lifecycle + path canonicalization + exec plan freeze + hook routing + $include guards + prototype pollution + safeBins profiles + group policy (C7,C8,C9,H12,H13,H14,H15,H16) |
 | Config Migration | `openclaw_shell_env_check`, `openclaw_plugin_integrity_check`, `openclaw_token_separation_check`, `openclaw_otel_redaction_check`, `openclaw_rpc_rate_limit_check` | Shell env sanitization + plugin integrity + token separation + OTEL redaction + RPC rate limiting (H17,H18,H19,M17,M21) |
+| Observability | `openclaw_observability_pipeline`, `openclaw_ci_pipeline_check` | JSONL→SQLite traces + CI workflow validation (T1,T6) |
+| Memory Audit | `openclaw_pgvector_memory_check`, `openclaw_knowledge_graph_check` | pgvector config + knowledge graph integrity (T3,T9) |
+| Agent Orchestration | `openclaw_agent_team_orchestrate`, `openclaw_agent_team_status` | Task DAG parallel execution + status (T4) |
+| i18n Audit | `openclaw_i18n_audit` | Locale file scanning + missing key detection (T5) |
+| Skill Loader | `openclaw_skill_lazy_loader`, `openclaw_skill_search` | Lazy SKILL.md loading + keyword search (T7) |
+| n8n Bridge | `openclaw_n8n_workflow_export`, `openclaw_n8n_workflow_import` | n8n workflow export/import (T8) |
+| Browser Audit | `openclaw_browser_context_check` | Playwright/Puppeteer headless config validation (T10) |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash
@@ -264,6 +278,43 @@ respectent les règles. Branche `feat/close-openclaw-gaps-v3` prête pour review
 **Améliorations appliquées à ce CLAUDE.md :**
 - Structure projet : `advanced_security.py` + `config_migration.py` + 55 models + 10 modules + 98 tests
 - Table outils : 2 nouvelles lignes (Advanced Security 8 tools, Config Migration 5 tools)
+- Ce journal de session ajouté
+
+---
+
+### Session du 4 mars 2026 — Phases 5a→5d complètes (feat/phase-5a)
+
+**Accompli :**
+Implémentation des 4 phases du plan ANALYSIS-REPORT-v4.md. Total final :
+**67 tools / 17 modules / 160 tests à 100 %**. Détail par phase :
+
+- **Phase 5a** : Auth middleware (I2), CI workflow (I19+I20), DRY no_traversal (I1), export mocks (I8)
+- **Phase 5b** : Observability pipeline T1/T6, pgvector T3, knowledge graph T9, concurrency tests I9
+- **Phase 5c** : Agent orchestration T4, i18n audit T5, skill loader T7
+- **Phase 5d** : n8n workflow bridge T8 (export+import), browser context check T10
+- **Transversaux** : README sync I4 (55→67 tools), cross-field model validators I5
+
+3 modèles avec `@model_validator(mode="after")` :
+`AgentTeamOrchestrateInput` (duplicate IDs + dep refs), `WorkspaceLockInput` (timeout reset),
+`SessionConfigCheckInput` (at-least-one-path).
+
+PR #3 (draft) mise à jour sur `feat/phase-5a` — 4 commits séquentiels.
+
+**Décisions d'architecture :**
+- **n8n node mapping** : 20 OpenClaw→n8n type mappings (http_request, agent, vector_store, etc.)
+  — extensible via `_OPENCLAW_TO_N8N_NODE_MAP` dict
+- **Workflow validation bidirectionnelle** : export valide la pipeline avant conversion,
+  import valide le JSON n8n avant copie (strict mode par défaut)
+- **Browser audit _deep_get** : recherche récursive dans les configs imbriquées (max depth 10)
+  — gère Playwright et Puppeteer qui imbriquent les settings différemment
+- **13 dangerous browser args** : liste exhaustive des args Chrome/Chromium dangereux
+  avec sévérité différenciée (CRITICAL pour --no-sandbox, HIGH pour le reste)
+- **Cross-field validators** : silently reset timeout_s pour release/status (pas d'erreur),
+  mais reject dur pour deps invalides et paths manquants
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet mise à jour : 17 modules, 67 tools, 160 tests
+- Table outils : 7 nouvelles lignes (Observability, Memory, Orchestration, i18n, Skill, n8n, Browser)
 - Ce journal de session ajouté
 
 ---
