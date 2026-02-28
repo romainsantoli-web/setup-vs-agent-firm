@@ -107,7 +107,8 @@ setup-vs-agent-firm/
 │   ├── firm-{legal,medtech,ecommerce,fintech,saas}-pack/  ← sector packs (gap #2)
 │   ├── firm-delivery-export/        ← pipeline delivrables (gap #6)
 │   ├── firm-security-audit/         ← séquence audit 5 étapes + remediations (C1,C2,C3,H8)
-│   └── firm-acp-bridge/             ← protocoles ACP persistence + cron + locking (C4,H3,H4,H5)
+│   ├── firm-acp-bridge/             ← protocoles ACP persistence + cron + locking (C4,H3,H4,H5)
+│   └── firm-hebbian-memory/         ← mémoire adaptative hebbienne (CDC v1.0.0)
 ├── souls/                           ← 5 SOUL.md (CEO, CFO, CTO, Legal, HR)
 ├── .github/workflows/
 │   └── openclaw-review.yml          ← Quality dept review on every PR
@@ -127,10 +128,11 @@ setup-vs-agent-firm/
     │   ├── skill_loader.py          ← 2 tools skill loading (T7)
     │   ├── n8n_bridge.py            ← 2 tools n8n workflow bridge (T8)
     │   ├── browser_audit.py         ← 1 tool browser automation (T10)
-    │   ├── models.py                ← 67 modèles Pydantic + TOOL_MODELS + cross-field validators
-    │   └── main.py                  ← 17 modules, 67 tools enregistrés
+    │   ├── hebbian_memory.py        ← 8 tools mémoire hebbienne (CDC §3-5)
+    │   ├── models.py                ← 75 modèles Pydantic + TOOL_MODELS + cross-field validators
+    │   └── main.py                  ← 19 modules, 75 tools enregistrés
     └── tests/
-        └── test_smoke.py            ← 160 tests, 100% pass
+        └── test_smoke.py            ← 207 tests, 100% pass
 ```
 
 ---
@@ -156,6 +158,7 @@ setup-vs-agent-firm/
 | Skill Loader | `openclaw_skill_lazy_loader`, `openclaw_skill_search` | Lazy SKILL.md loading + keyword search (T7) |
 | n8n Bridge | `openclaw_n8n_workflow_export`, `openclaw_n8n_workflow_import` | n8n workflow export/import (T8) |
 | Browser Audit | `openclaw_browser_context_check` | Playwright/Puppeteer headless config validation (T10) |
+| Hebbian Memory | `openclaw_hebbian_{harvest,weight_update,analyze,status,layer_validate,pii_check,decay_config_check,drift_check}` | Mémoire adaptative hebbienne : harvest JSONL, poids Layer 2, co-activations, PII stripping, drift detection (CDC §3-5) |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash

@@ -194,6 +194,19 @@ bash scripts/status.sh
 | T9 | `openclaw_knowledge_graph_check` | Knowledge graph integrity (orphans, cycles, TTL) |
 | T10 | `openclaw_browser_context_check` | Playwright/Puppeteer headless config validation |
 
+### Phase 6 — Hebbian Adaptive Memory (CDC v1.0.0)
+
+| Tool | Description |
+|------|-------------|
+| `openclaw_hebbian_harvest` | Ingest JSONL session logs → SQLite (PII stripped) |
+| `openclaw_hebbian_weight_update` | Compute/apply Hebbian weight updates on Layer 2 |
+| `openclaw_hebbian_analyze` | Co-activation pattern analysis (Jaccard similarity) |
+| `openclaw_hebbian_status` | Dashboard: weights, atrophy, promotions |
+| `openclaw_hebbian_layer_validate` | Validate 4-layer Claude.md structure |
+| `openclaw_hebbian_pii_check` | Audit PII stripping config |
+| `openclaw_hebbian_decay_config_check` | Validate learning rate, decay, thresholds |
+| `openclaw_hebbian_drift_check` | Cosine similarity drift detection vs baseline |
+
 ---
 
 ## Skills (ClawHub)
@@ -208,7 +221,8 @@ skills/
 ├── firm-saas-pack/         # SaaS/PLG
 ├── firm-delivery-export/   # Deliverables pipeline skill
 ├── firm-security-audit/    # 5-step security audit sequence (C1,C2,C3,H8)
-└── firm-acp-bridge/        # ACP persistence + cron + locking (C4,H3,H4,H5)
+├── firm-acp-bridge/        # ACP persistence + cron + locking (C4,H3,H4,H5)
+└── firm-hebbian-memory/    # Adaptive Hebbian memory system (CDC v1.0.0)
 ```
 
 Install all skills at once:
@@ -278,7 +292,7 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (67 total — 18 modules)
+### Tools (75 total — 19 modules)
 
 See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for the complete tool reference.
 
@@ -301,6 +315,7 @@ See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for t
 | Skill Loader | 2 | `skill_loader` |
 | n8n Bridge | 2 | `n8n_bridge` |
 | Browser Audit | 1 | `browser_audit` |
+| Hebbian Memory | 8 | `hebbian_memory` |
 | **Shared helpers** | — | `config_helpers` |
 
 ### Start / stop / status
@@ -364,10 +379,10 @@ pip install -r requirements-dev.txt
 python -m pytest tests/test_smoke.py -v
 ```
 
-**177 tests**, 100% pass — covering:
+**207 tests**, 100% pass — covering:
 - Server starts and answers `ping`
 - `initialize` returns correct capabilities + version
-- All 67 tools registered with valid `inputSchema`
+- All 75 tools registered with valid `inputSchema`
 - `vs_context_push` degrades gracefully without Gateway
 - `firm_export_document` writes local file
 - Unknown method returns JSON-RPC error -32601
@@ -376,6 +391,7 @@ python -m pytest tests/test_smoke.py -v
 - ConfigPathInput traversal blocking across all 21 config-path models
 - Health/healthz endpoints return correct tool count + version
 - Config helpers: `load_config`, `get_nested`, `mask_secret`
+- Hebbian memory: harvest PII stripping, weight updates, layer validation, drift detection, Pydantic guards
 
 ---
 
