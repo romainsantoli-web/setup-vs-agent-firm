@@ -711,6 +711,88 @@ Rôle humain = **supervision** + **review** + **architecture**. Délègue le bas
 "
 write_file "$OUTPUT_DIR/CLAUDE.md" "$CLAUDE_CONTENT"
 
+# ── CONTRIBUTING.md (M9 — firm contribution guide) ────────────────────────────
+CONTRIBUTING_CONTENT="# Contributing to ${FIRM_NAME}
+
+> ⚠️ Contenu généré automatiquement — adapter avant publication.
+
+Bienvenue ! Ce projet valorise les contributions humaines **et** les PRs vibe-codées / IA-assisted. Voici comment contribuer efficacement.
+
+---
+
+## 🚀 Quick start
+
+\`\`\`bash
+git clone <repo-url>
+cd ${SLUG}
+bash scripts/install-skills.sh
+\`\`\`
+
+---
+
+## 🤝 Comment contribuer
+
+### 1. Issues
+- Ouvre une issue avant de coder une feature significative
+- Label **\`good first issue\`** → tâches idéales pour débuter
+- Label **\`ai-assisted\`** → PRs générées en tout ou partie par IA
+
+### 2. Pull Requests
+
+**Checklist obligatoire avant de soumettre une PR :**
+
+- [ ] Branche dédiée : \`feat/<slug>\`, \`fix/<slug>\`, \`chore/<slug>\`
+- [ ] \`python -m pytest tests/ -v\` → **100 % pass**
+- [ ] Coverage ≥ 80 % (\`pytest --cov\`)
+- [ ] Aucun secret dans le diff (\`git diff HEAD | grep -i token\`)
+- [ ] Output IA marqué : \`⚠️ Contenu généré par IA — validation humaine requise\`
+- [ ] \`CLAUDE.md\` mis à jour si nouvelle pratique découverte
+- [ ] Commit message : \`type(scope): description courte\`
+
+### 3. PRs vibe-codées / IA-assisted
+
+Les PRs générées avec Claude, Copilot ou tout autre outil IA sont **les bienvenues** — ajoutez simplement le label \`ai-assisted\` et précisez l'outil utilisé dans la description.
+
+---
+
+## 🔒 Signalement de vulnérabilités
+
+**Ne pas ouvrir d'issue publique pour une faille de sécurité.**
+
+Envoyer un email à : security@${SLUG}.example.com  
+(ou ouvrir une issue privée via GitHub Security Advisories)
+
+Inclure :
+1. Description de la vulnérabilité
+2. Étapes de reproduction
+3. Impact estimé
+4. Correctif proposé (optionnel)
+
+Réponse garantie sous 72h.
+
+---
+
+## 📋 Labels disponibles
+
+| Label | Description |
+|-------|-------------|
+| \`good first issue\` | Idéal pour débuter |
+| \`ai-assisted\` | PR générée partiellement ou totalement par IA |
+| \`needs-review\` | En attente de review humaine |
+| \`security\` | Impact sécurité |
+| \`breaking-change\` | Modifie l'API ou le comportement |
+| \`documentation\` | Uniquement de la doc |
+
+---
+
+## 📖 Ressources
+
+- [CLAUDE.md](CLAUDE.md) — règles et workflows de ce projet
+- [README.md](README.md) — guide d'installation
+- [OpenClaw docs](https://docs.openclaw.ai)
+"
+write_file "$OUTPUT_DIR/CONTRIBUTING.md" "$CONTRIBUTING_CONTENT"
+
 # ── 7. OpenClaw skill installer ───────────────────────────────
 # Compute optional sector skill line before building string
 SECTOR_SKILL_LINE=""

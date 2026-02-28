@@ -13,7 +13,7 @@
 1. [Architecture](#architecture)
 2. [Prerequisites](#prerequisites)
 3. [Quick-start (5 minutes)](#quick-start)
-4. [What was built — the 20 gaps](#what-was-built--the-20-gaps)
+4. [What was built — the 26 gaps](#what-was-built--the-26-gaps)
 5. [Skills (ClawHub)](#skills-clawhub)
 6. [Factory — generate a firm in one command](#factory--generate-a-firm-in-one-command)
 7. [MCP server — mcp-openclaw-extensions](#mcp-server--mcp-openclaw-extensions)
@@ -109,7 +109,7 @@ bash scripts/status.sh
 
 ---
 
-## What was built — the 20 gaps
+## What was built — the 26 gaps
 
 ### Phase 1 — Infrastructure (gaps 1-8)
 
@@ -124,7 +124,7 @@ bash scripts/status.sh
 | 7 | CI/CD review agent | GitHub Actions — OpenClaw Quality dept reviews every PR | `.github/workflows/openclaw-review.yml` |
 | 8 | SOUL corporate personas | 5 executive personas (CEO/CFO/CTO/Legal/HR) | `souls/` |
 
-### Phase 2 — Security & Reliability (gaps 9-20, OpenClaw audit)
+### Phase 2 — Security & Reliability (gaps 9-26, OpenClaw audit)
 
 | ID | Sev | Gap | Tool / Location |
 |----|-----|-----|-----------------|
@@ -133,6 +133,7 @@ bash scripts/status.sh
 | C3 | 🔴 CRITICAL | SESSION_SECRET ephemeral / missing | `openclaw_session_config_check` |
 | C4 | 🔴 CRITICAL | ACP sessions lost on restart | `acp_session_persist/restore` |
 | H1 | 🟠 HIGH | `@buape/carbon` frozen at 0.0.0-beta | `firm_adr_generate` + CTO SOUL.md |
+| H2 | 🟠 HIGH | Gateway Funnel without auth.mode=password | `openclaw_gateway_auth_check` |
 | H3 | 🟠 HIGH | Spawned sessions get no env vars | `fleet_session_inject_env` |
 | H4 | 🟠 HIGH | Cron not blocked in sandbox | `fleet_cron_schedule` |
 | H5 | 🟠 HIGH | Race condition on workspace lock | `openclaw_workspace_lock` |
@@ -141,8 +142,13 @@ bash scripts/status.sh
 | H8 | 🟠 HIGH | No rate limiting on Tailscale Funnel | `openclaw_rate_limit_check` |
 | M1 | 🟡 MED | `@line/bot-sdk` zombie dep | `openclaw_channel_audit` |
 | M2 | 🟡 MED | Test coverage threshold 70% | factory 80% + CTO SOUL.md |
+| M3 | 🟡 MED | Baileys creds.json no integrity/age check | `openclaw_credentials_check` |
+| M4 | 🟡 MED | Webhook HMAC signature verification missing | `openclaw_webhook_sig_check` |
 | M5 | 🟡 MED | Docs version stale vs package.json | `openclaw_doc_sync_check` |
 | M6 | 🟡 MED | No ADRs for architecture decisions | `firm_adr_generate` |
+| M7 | 🟡 MED | Logging verbose / missing redactPatterns | `openclaw_log_config_check` |
+| M8 | 🟡 MED | ~/.openclaw/workspace integrity unchecked | `openclaw_workspace_integrity_check` |
+| M9 | 🟡 MED | Factory generates no CONTRIBUTING.md | `factory/generate-firm.sh` |
 
 ---
 

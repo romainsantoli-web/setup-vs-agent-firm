@@ -110,10 +110,11 @@ setup-vs-agent-firm/
     │   ├── security_audit.py        ← 4 tools sécurité (C1,C2,C3,H8)
     │   ├── acp_bridge.py            ← 6 tools ACP + fleet (C4,H3,H4,H5)
     │   ├── reliability_probe.py     ← 4 tools fiabilité + ADR (H6,H7,M1,M5,M6)
-    │   ├── models.py                ← 30 modèles Pydantic + TOOL_MODELS
-    │   └── main.py                  ← 6 modules, 30 tools enregistrés
+    │   ├── gateway_hardening.py     ← 5 tools Gateway auth + credentials + webhooks (H2,M3,M4,M7,M8)
+    │   ├── models.py                ← 35 modèles Pydantic + TOOL_MODELS
+    │   └── main.py                  ← 7 modules, 35 tools enregistrés
     └── tests/
-        └── test_smoke.py            ← 39 tests, 100% pass
+        └── test_smoke.py            ← 52 tests, 100% pass
 ```
 
 ---
@@ -128,6 +129,7 @@ setup-vs-agent-firm/
 | Security | `openclaw_security_scan`, `openclaw_sandbox_audit`, `openclaw_session_config_check`, `openclaw_rate_limit_check` | Audit sécurité avant déploiement |
 | ACP Bridge | `acp_session_{persist,restore,list_active}`, `fleet_session_inject_env`, `fleet_cron_schedule`, `openclaw_workspace_lock` | Persistence sessions + cron + locking |
 | Reliability | `openclaw_gateway_probe`, `openclaw_doc_sync_check`, `openclaw_channel_audit`, `firm_adr_generate` | Fiabilité + ADR + dépendances |
+| Gateway Hardening | `openclaw_gateway_auth_check`, `openclaw_credentials_check`, `openclaw_webhook_sig_check`, `openclaw_log_config_check`, `openclaw_workspace_integrity_check` | Auth Gateway + credentials Baileys + webhooks HMAC + logs + workspace |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash
@@ -175,6 +177,28 @@ passent à 100 %. Branche `feat/close-openclaw-gaps` prête pour review.
 - Table outils étendue : 30 tools en 6 catégories (était 3 catégories)
 - Règle 3 : seuil coverage porté à 80 %
 - Ce journal de session ajouté (section 📓)
+
+---
+
+### Session du 1er mars 2026 — Gateway Hardening + 6 nouveaux gaps (feat/close-openclaw-gaps)
+
+**Accompli :**
+Fermeture de 6 gaps supplémentaires (H2, M3, M4, M7, M8, M9) via un nouveau module Python
+`gateway_hardening.py` (5 tools MCP) + génération CONTRIBUTING.md dans la factory. Total porté
+à 35 tools, 52 tests à 100 %. Les 5 modèles Pydantic (path-traversal guard + contraintes de type)
+respectent la règle obligatoire de ce CLAUDE.md. Les deux READMEs sont mis à jour (35 tools, 26 gaps).
+
+**Décisions d'architecture :**
+- **`gateway.controlUi.dangerouslyDisableDeviceAuth`** (pas `gateway.dangerouslyDisableDeviceAuth`) :
+  le champ est imbriqué sous `controlUi` dans le schéma OpenClaw — importance de lire les specs avant d'écrire les tests
+- **Sévérité CRITICAL** pour Funnel sans password : confirmé dans SECURITY.md openclaw ("Funnel refuses to start unless `gateway.auth.mode: password` is set")
+- **JSON file natif** pour éviter les dépendances Redis/SQLite — pattern cohérent avec l'approche ACP bridge
+- **CONTRIBUTING.md** généré dans la factory (M9) : template avec labels `good-first-issue`, `ai-assisted`, section sécurité (responsible disclosure), checklist PR pydantic/tests/secrets
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : `gateway_hardening.py` + 35 models + 7 modules + 52 tests
+- Table outils : ligne "Gateway Hardening" ajoutée (5 tools H2,M3,M4,M7,M8)
+- Ce journal de session ajouté
 
 ---
 
