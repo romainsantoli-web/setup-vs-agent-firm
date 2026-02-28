@@ -118,10 +118,12 @@ setup-vs-agent-firm/
     │   ├── reliability_probe.py     ← 4 tools fiabilité + ADR (H6,H7,M1,M5,M6)
     │   ├── gateway_hardening.py     ← 5 tools Gateway auth + credentials + webhooks (H2,M3,M4,M7,M8)
     │   ├── runtime_audit.py         ← 7 tools runtime & config (C5,C6,H9,H10,H11,M15,M16)
-    │   ├── models.py                ← 42 modèles Pydantic + TOOL_MODELS
-    │   └── main.py                  ← 8 modules, 42 tools enregistrés
+    │   ├── advanced_security.py     ← 8 tools sécurité avancée (C7,C8,C9,H12,H13,H14,H15,H16)
+    │   ├── config_migration.py      ← 5 tools migration config (H17,H18,H19,M17,M21)
+    │   ├── models.py                ← 55 modèles Pydantic + TOOL_MODELS
+    │   └── main.py                  ← 10 modules, 55 tools enregistrés
     └── tests/
-        └── test_smoke.py            ← 69 tests, 100% pass
+        └── test_smoke.py            ← 98 tests, 100% pass
 ```
 
 ---
@@ -138,6 +140,8 @@ setup-vs-agent-firm/
 | Reliability | `openclaw_gateway_probe`, `openclaw_doc_sync_check`, `openclaw_channel_audit`, `firm_adr_generate` | Fiabilité + ADR + dépendances |
 | Gateway Hardening | `openclaw_gateway_auth_check`, `openclaw_credentials_check`, `openclaw_webhook_sig_check`, `openclaw_log_config_check`, `openclaw_workspace_integrity_check` | Auth Gateway + credentials Baileys + webhooks HMAC + logs + workspace |
 | Runtime Audit | `openclaw_node_version_check`, `openclaw_secrets_workflow_check`, `openclaw_http_headers_check`, `openclaw_nodes_commands_check`, `openclaw_trusted_proxy_check`, `openclaw_session_disk_budget_check`, `openclaw_dm_allowlist_check` | Node.js version + secrets + headers + nodes.allowCommands + trusted-proxy + disk budget + dmPolicy (C5,C6,H9,H10,H11,M15,M16) |
+| Advanced Security | `openclaw_secrets_lifecycle_check`, `openclaw_channel_auth_canon_check`, `openclaw_exec_approval_freeze_check`, `openclaw_hook_session_routing_check`, `openclaw_config_include_check`, `openclaw_config_prototype_check`, `openclaw_safe_bins_profile_check`, `openclaw_group_policy_default_check` | External Secrets lifecycle + path canonicalization + exec plan freeze + hook routing + $include guards + prototype pollution + safeBins profiles + group policy (C7,C8,C9,H12,H13,H14,H15,H16) |
+| Config Migration | `openclaw_shell_env_check`, `openclaw_plugin_integrity_check`, `openclaw_token_separation_check`, `openclaw_otel_redaction_check`, `openclaw_rpc_rate_limit_check` | Shell env sanitization + plugin integrity + token separation + OTEL redaction + RPC rate limiting (H17,H18,H19,M17,M21) |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash
@@ -237,7 +241,34 @@ respectent la règle obligatoire de ce CLAUDE.md. Les deux READMEs sont mis à j
 
 ---
 
-## �🔑 PHILOSOPHIE
+### Session du 3 mars 2026 — Advanced Security + Config Migration (feat/close-openclaw-gaps-v3)
+
+**Accompli :**
+Analyse cross-repo complète (gap analysis) identifiant 19 nouveaux gaps + 20 inefficiences.
+Implémentation de 13 gaps (3 CRITICAL, 8 HIGH, 2 MEDIUM) via 2 nouveaux modules Python :
+`advanced_security.py` (8 tools) et `config_migration.py` (5 tools). Total porté à
+**55 tools / 10 modules / 98 tests à 100 %**. Les 13 modèles Pydantic (path-traversal guard)
+respectent les règles. Branche `feat/close-openclaw-gaps-v3` prête pour review.
+
+**Décisions d'architecture :**
+- **Recursive `_scan_proto_keys()`** pour H14 : scan profond de toute la config JSON à la recherche
+  de `__proto__`, `constructor`, `prototype` — protège contre les objets imbriqués
+- **`stat.st_nlink > 1`** pour H13 : détection de hardlinks sur les $include — méthode portable POSIX
+- **14 canaux group policy** pour H16 : liste étendue à slack, discord, telegram, whatsapp, signal,
+  imessage, line, matrix, mattermost, google-chat, irc, nextcloud-talk, feishu, zalo
+- **Interpreter set** pour H15 : python/ruby/perl/node/deno/bun/lua/php/bash/sh/zsh/fish/powershell/pwsh
+  — tout binary dans ce set sans profil safeBinProfiles est CRITICAL
+- **3 emplacements env** pour H17 : scan agents.defaults.env + tools.exec.env + hooks.env pour LD_*/DYLD_*
+- **sha256 drift detection** pour H18 : hashlib.sha256 vs plugin-manifest.json — détecte tampering post-install
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : `advanced_security.py` + `config_migration.py` + 55 models + 10 modules + 98 tests
+- Table outils : 2 nouvelles lignes (Advanced Security 8 tools, Config Migration 5 tools)
+- Ce journal de session ajouté
+
+---
+
+## 🔑 PHILOSOPHIE
 
 > "Utilise l'IA aussi agressivement que possible — c'est la seule façon de repousser
 > les limites de ce dont les agents sont capables." — Anthropic
