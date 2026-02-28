@@ -4,7 +4,7 @@
 > [OpenClaw](https://github.com/openclaw/openclaw) (239k ⭐) and
 > [ClawHub](https://clawhub.ai).
 >
-> Fills **8 concrete technical gaps** not covered by the existing 13,729-skill ecosystem.
+> Fills **20 documented gaps** not covered by the existing 13,729-skill ecosystem.
 
 ---
 
@@ -13,7 +13,7 @@
 1. [Architecture](#architecture)
 2. [Prerequisites](#prerequisites)
 3. [Quick-start (5 minutes)](#quick-start)
-4. [What was built — the 8 gaps](#what-was-built--the-8-gaps)
+4. [What was built — the 20 gaps](#what-was-built--the-20-gaps)
 5. [Skills (ClawHub)](#skills-clawhub)
 6. [Factory — generate a firm in one command](#factory--generate-a-firm-in-one-command)
 7. [MCP server — mcp-openclaw-extensions](#mcp-server--mcp-openclaw-extensions)
@@ -47,7 +47,7 @@
                        │ ClawHub skills
           ┌────────────▼────────────┐
           │  ClawHub  (5,494+ skills│
-          │  + 7 new firm skills)   │
+          │  + 9 new firm skills)   │
           └─────────────────────────┘
 ```
 
@@ -109,7 +109,9 @@ bash scripts/status.sh
 
 ---
 
-## What was built — the 8 gaps
+## What was built — the 20 gaps
+
+### Phase 1 — Infrastructure (gaps 1-8)
 
 | # | Gap | What | Location |
 |---|-----|------|----------|
@@ -121,6 +123,26 @@ bash scripts/status.sh
 | 6 | Deliverables pipeline | Export to GitHub PR / Jira / Linear / Slack / doc | `mcp-openclaw-extensions/src/delivery_export.py` |
 | 7 | CI/CD review agent | GitHub Actions — OpenClaw Quality dept reviews every PR | `.github/workflows/openclaw-review.yml` |
 | 8 | SOUL corporate personas | 5 executive personas (CEO/CFO/CTO/Legal/HR) | `souls/` |
+
+### Phase 2 — Security & Reliability (gaps 9-20, OpenClaw audit)
+
+| ID | Sev | Gap | Tool / Location |
+|----|-----|-----|-----------------|
+| C1 | 🔴 CRITICAL | SQL injection in API endpoints | `openclaw_security_scan` |
+| C2 | 🔴 CRITICAL | Sandbox disabled (`mode: off`) | `openclaw_sandbox_audit` |
+| C3 | 🔴 CRITICAL | SESSION_SECRET ephemeral / missing | `openclaw_session_config_check` |
+| C4 | 🔴 CRITICAL | ACP sessions lost on restart | `acp_session_persist/restore` |
+| H1 | 🟠 HIGH | `@buape/carbon` frozen at 0.0.0-beta | `firm_adr_generate` + CTO SOUL.md |
+| H3 | 🟠 HIGH | Spawned sessions get no env vars | `fleet_session_inject_env` |
+| H4 | 🟠 HIGH | Cron not blocked in sandbox | `fleet_cron_schedule` |
+| H5 | 🟠 HIGH | Race condition on workspace lock | `openclaw_workspace_lock` |
+| H6 | 🟠 HIGH | Gateway silently drops on macOS sleep | `openclaw_gateway_probe` |
+| H7 | 🟠 HIGH | WS close code 1006 not handled | `openclaw_gateway_probe` |
+| H8 | 🟠 HIGH | No rate limiting on Tailscale Funnel | `openclaw_rate_limit_check` |
+| M1 | 🟡 MED | `@line/bot-sdk` zombie dep | `openclaw_channel_audit` |
+| M2 | 🟡 MED | Test coverage threshold 70% | factory 80% + CTO SOUL.md |
+| M5 | 🟡 MED | Docs version stale vs package.json | `openclaw_doc_sync_check` |
+| M6 | 🟡 MED | No ADRs for architecture decisions | `firm_adr_generate` |
 
 ---
 
@@ -134,7 +156,9 @@ skills/
 ├── firm-ecommerce-pack/    # E-commerce/D2C/marketplace
 ├── firm-fintech-pack/      # Fintech/neobank/AML/KYC
 ├── firm-saas-pack/         # SaaS/PLG
-└── firm-delivery-export/   # Deliverables pipeline skill
+├── firm-delivery-export/   # Deliverables pipeline skill
+├── firm-security-audit/    # 5-step security audit sequence (C1,C2,C3,H8)
+└── firm-acp-bridge/        # ACP persistence + cron + locking (C4,H3,H4,H5)
 ```
 
 Install all skills at once:
@@ -144,7 +168,7 @@ Install all skills at once:
 bash ./my-firm/scripts/install-skills.sh
 
 # Or manually via ClawHub CLI
-clawhub install firm-orchestration firm-saas-pack firm-delivery-export
+clawhub install firm-orchestration firm-saas-pack firm-delivery-export firm-security-audit firm-acp-bridge
 ```
 
 Each `SKILL.md` file is directly publishable to ClawHub with the standard YAML frontmatter.
@@ -204,7 +228,7 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (16 total)
+### Tools (30 total)
 
 | Module | Tool | Description |
 |--------|------|-------------|
@@ -224,6 +248,20 @@ Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 | delivery_export | `firm_export_slack_digest` | Post Slack digest (Block Kit) |
 | delivery_export | `firm_export_document` | Write local Markdown deliverable |
 | delivery_export | `firm_export_auto` | Auto-route by delivery_format |
+| security_audit | `openclaw_security_scan` | Scan for SQL injection / XSS (C1) |
+| security_audit | `openclaw_sandbox_audit` | Detect sandbox disabled (C2) |
+| security_audit | `openclaw_session_config_check` | Detect ephemeral SESSION_SECRET (C3) |
+| security_audit | `openclaw_rate_limit_check` | Detect Funnel without rate limit (H8) |
+| acp_bridge | `acp_session_persist` | Persist ACP session to disk (C4) |
+| acp_bridge | `acp_session_restore` | Restore persisted ACP session (C4) |
+| acp_bridge | `acp_session_list_active` | List active ACP sessions (C4) |
+| acp_bridge | `fleet_session_inject_env` | Inject env vars to spawned sessions (H3) |
+| acp_bridge | `fleet_cron_schedule` | Schedule cron with sandbox enforcement (H4) |
+| acp_bridge | `openclaw_workspace_lock` | Advisory file lock — `fcntl` (H5) |
+| reliability_probe | `openclaw_gateway_probe` | WS probe with backoff, detects 1006 (H6/H7) |
+| reliability_probe | `openclaw_doc_sync_check` | Detect docs version drift vs package.json (M5) |
+| reliability_probe | `openclaw_channel_audit` | Detect zombie channel SDK deps (M1) |
+| reliability_probe | `firm_adr_generate` | Generate MADR ADR + commit path (M6) |
 
 ### Start / stop / status
 
