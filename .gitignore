@@ -1,0 +1,20 @@
+# mcp-openclaw-extensions is its own repository
+mcp-openclaw-extensions/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Env
+.env
+
+# Logs / PID
+*.log
+*.pid
+.mcp_ext.pid
+.mcp_ext.log
