@@ -41,6 +41,12 @@ Tout deliverable généré par un agent doit porter :
 ⚠️ Contenu généré par IA — validation humaine requise avant utilisation.
 ```
 
+### 6. Pas de code inline dans le terminal
+- Ne **jamais** exécuter plus de ~10 lignes de code directement dans le terminal (`python -c`, heredoc, etc.)
+- Au-delà de 10 lignes : écrire un script temporaire (`/tmp/script.py`) puis le lancer
+- Raison : le shell multi-ligne casse le quoting, bloque sur les `"`, et produit des commandes irrécupérables
+- Idem pour les commit messages multi-lignes : utiliser `git commit -F /tmp/msg.txt`
+
 ---
 
 ## 🏗️ WORKFLOWS ANTHROPIC — PRATIQUES DES ÉQUIPES INTERNES
@@ -151,7 +157,9 @@ Avant de marquer une tâche comme terminée, vérifier chaque point :
 - [ ] Output AI marqué avec disclaimer si deliverable externe
 - [ ] `CLAUDE.md` mis à jour si nouvelle pratique découverte
 - [ ] Commit message clair : `type(scope): description` + liste des changements
-- [ ] PR créée en **draft** avec label `needs-review`
+- [ ] **Review Pydantic** : vérifier traversal bloqué, defaults cohérents, inputs valides acceptés, `TOOL_MODELS` complet
+- [ ] **Tests Pydantic** : script dédié (`/tmp/pydantic_review.py`) exécuté et 100 % pass
+- [ ] PR créée en **draft** avec label `needs-review` (seulement après review + tests OK)
 
 ---
 
