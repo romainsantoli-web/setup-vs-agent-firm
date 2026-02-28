@@ -89,11 +89,21 @@ poids_max     = 0.95    # Ceiling — promotion CORE si > 0.95
 
 ## Sécurité (CDC §5.2)
 
-- **PII stripping obligatoire** : regex sur emails, phones, IPs, API keys, SSN, JWT, AWS keys
+- **PII stripping obligatoire** : regex sur emails, phones, IPs, API keys, SSN, JWT, AWS keys, chemins Unix home
 - **Secrets détectés** : session rejetée + alerte immédiate
 - **Accès BDD** : localhost/VPN uniquement
 - **Rotation embeddings** : policy de ré-embedding si fuite suspectée
 - **Réversibilité** : chaque modification = 1 commit Git atomique
+- **Path whitelist** : configurable via `HEBBIAN_ALLOWED_DIRS` (env) — protège containers/multi-user
+
+### Limitations connues (PII)
+
+Le stripping regex couvre les catégories les plus courantes (10 patterns) mais ne
+détecte pas les credentials embarqués dans des URLs de connexion (e.g.
+`postgres://user:password@host/db`) ni les variables d'environnement loguées dans
+des stack traces (`DB_URL=...`). Un scanner de secrets dédié (e.g. `trufflehog`,
+`detect-secrets`) est recommandé en complément pour les environnements à haute
+sensibilité.
 
 ## Anti-dérive (CDC §5.1)
 
@@ -117,6 +127,61 @@ poids_max     = 0.95    # Ceiling — promotion CORE si > 0.95
          ↓
 [ Human Review ] → validation avant application (dry_run=False)
 ```
+
+## Hook post-session (MVP)
+
+Sans hook automatique, l'ingestion reste manuelle — adoption = zéro.
+Voici le minimum pour boucler le pipeline dès le MVP.
+
+### Option A — Script shell (le plus simple)
+
+Créer `~/.openclaw/hooks/post-session.sh` :
+
+```bash
+#!/usr/bin/env bash
+# Hook post-session: ingest le dernier JSONL automatiquement
+set -euo pipefail
+
+SESSION_LOG="${1:-$(ls -t ~/.openclaw/sessions/*.jsonl 2>/dev/null | head -1)}"
+[ -z "$SESSION_LOG" ] && exit 0
+
+# Appel MCP via curl (le serveur doit tourner sur :8012)
+curl -s -X POST http://localhost:8012/mcp \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"method\": \"tools/call\",
+    \"params\": {
+      \"name\": \"openclaw_hebbian_harvest\",
+      \"arguments\": {\"session_jsonl_path\": \"$SESSION_LOG\"}
+    }
+  }" | jq '.result.ingested // .error'
+```
+
+### Option B — Entrée cron (automatisation passive)
+
+```bash
+# Toutes les 30 min, ingérer les nouveaux JSONL
+*/30 * * * * /bin/bash ~/.openclaw/hooks/post-session.sh >> ~/.openclaw/hebbian-harvest.log 2>&1
+```
+
+### Option C — Intégration `pi-coding-agent`
+
+Si le projet utilise `pi-coding-agent`, ajouter dans sa config :
+
+```json
+{
+  "hooks": {
+    "post_session": {
+      "command": "~/.openclaw/hooks/post-session.sh",
+      "trigger": "on_session_end"
+    }
+  }
+}
+```
+
+> **Note :** Le hook ne déclenche **que** le harvest (lecture). La mise à jour
+> des poids (`weight_update`) reste toujours manuelle avec `dry_run=True` par
+> défaut — conformément à la règle absolue n°1 du CDC.
 
 ## Adaptation OpenClaw
 
