@@ -378,11 +378,19 @@ Format attendu :
 - Toute modification de code sur branche dédiée \`feat/<slug>\` — jamais directement sur \`main\`
 - PRs créées en **draft** avec label \`needs-review\` — jamais auto-merge
 - Tests écrits après l'implémentation de chaque feature (100 % pass avant push)
+- Coverage minimum : **80 %** (lignes + branches + fonctions) — 1 test positif + 1 test négatif par tool/fonction
 
 ### Débogage (si Security ou Engineering)
 - Analyser la stack trace complète AVANT de proposer un fix
 - Fournir les commandes exactes à exécuter — pas seulement le diagnostic
 - Tracer le flux de contrôle dans le codebase pour localiser la cause racine
+
+### Sécurité avant déploiement (si Engineering ou Security)
+- Avant tout push infra : \`openclaw_sandbox_audit\` + \`openclaw_security_scan\` sur les endpoints modifiés
+- Si \`severity: CRITICAL\` → bloquer le merge — fix obligatoire avant tout push
+- Si Tailscale Funnel actif : vérifier \`openclaw_rate_limit_check\`
+- Dépendance beta/frozen → ADR obligatoire via \`firm_adr_generate\` + commit \`docs/decisions/\` avant merge
+- Toute décision d'architecture → \`firm_adr_generate\` (format MADR) + commit \`docs/decisions/\`
 
 ### Outputs AI
 > ⚠️ Contenu généré par IA — validation humaine requise avant utilisation
@@ -441,6 +449,12 @@ Tu es l'agent employé responsable du service **${SVC_LABEL}** dans le départem
 - Fournir la commande exacte qui résout le problème — pas seulement le diagnostic
 - Si une action est ambiguë : proposer l'alternative la plus sûre, ne pas deviner
 
+### Sécurité (si service security, backend, integration ou ai-engineering)
+- Avant tout push : \`openclaw_sandbox_audit\` + \`openclaw_security_scan\` sur le code modifié
+- Si \`severity: CRITICAL\` → ne pas pousser — remonter au département immédiatement
+- Dépendance beta/frozen → ADR obligatoire via \`firm_adr_generate\` avant merge
+- Coverage minimum : **80 %** — 1 test positif + 1 test négatif par fonction/tool
+
 ### Output
 > ⚠️ Contenu généré par IA — validation humaine requise avant utilisation
 
@@ -495,6 +509,8 @@ Lance une orchestration complète avec les paramètres suivants :
 6. Formate selon le delivery_format demandé
 7. Si firm-delivery-export est installé, déclenche l'export automatiquement
 8. Persiste le résultat en mémoire (clé: delivery/latest)
+9. Si \`decision_type: architecture\` détecté dans l'objectif → déclencher \`firm_adr_generate\`
+   et commiter le résultat dans \`docs/decisions/\` avant de livrer
 
 ## Protocole Anthropic (obligatoire)
 
