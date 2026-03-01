@@ -102,7 +102,7 @@ setup-vs-agent-firm/
 ├── README.md                        ← guide d'installation complet
 ├── factory/
 │   └── generate-firm.sh             ← générateur de firms (15 secteurs, 3 tailles)
-├── skills/                          ← SKILL.md publiables sur ClawHub (13 skills)
+├── skills/                          ← SKILL.md publiables sur ClawHub (28 skills)
 │   ├── firm-orchestration/          ← A2A protocol (gap #1)
 │   ├── firm-{legal,medtech,ecommerce,fintech,saas}-pack/  ← sector packs (gap #2)
 │   ├── firm-delivery-export/        ← pipeline delivrables (gap #6)
@@ -111,7 +111,24 @@ setup-vs-agent-firm/
 │   ├── firm-hebbian-memory/         ← mémoire adaptative hebbienne (CDC v1.0.0)
 │   ├── firm-a2a-bridge/             ← A2A Protocol RC v1.0 bridge (8 tools)
 │   ├── firm-spec-compliance-pack/   ← MCP 2025-11-25 spec compliance audit (7 tools)
-│   └── firm-prompt-security-pack/   ← Prompt injection detection (2 tools, 16 patterns)
+│   ├── firm-prompt-security-pack/   ← Prompt injection detection (2 tools, 16 patterns)
+│   ├── firm-gateway-hardening-pack/ ← Gateway auth + credentials + webhooks (5 tools)
+│   ├── firm-fleet-manager-pack/     ← Fleet multi-instances Gateway (6 tools)
+│   ├── firm-runtime-audit-pack/     ← Runtime & config audit (7 tools)
+│   ├── firm-advanced-security-pack/ ← Sécurité avancée (8 tools)
+│   ├── firm-config-migration-pack/  ← Migration config (5 tools)
+│   ├── firm-reliability-pack/       ← Fiabilité + ADR (4 tools)
+│   ├── firm-observability-pack/     ← JSONL→SQLite traces + CI (2 tools)
+│   ├── firm-memory-audit-pack/      ← pgvector + knowledge graph (2 tools)
+│   ├── firm-agent-orchestration-pack/ ← DAG task execution (2 tools)
+│   ├── firm-i18n-audit-pack/        ← Locale scanning (1 tool)
+│   ├── firm-n8n-bridge-pack/        ← n8n workflow export/import (2 tools)
+│   ├── firm-browser-audit-pack/     ← Playwright/Puppeteer audit (1 tool)
+│   ├── firm-platform-audit-pack/    ← Platform alignment 2026.2 (8 tools)
+│   ├── firm-ecosystem-audit-pack/   ← Ecosystem differentiation (7 tools)
+│   ├── firm-auth-compliance-pack/   ← OAuth/OIDC + compliance medium (8 tools)
+│   ├── firm-vs-bridge-pack/         ← VS Code context sync (4 tools)
+│   └── firm-skill-loader-pack/      ← Lazy SKILL.md loading (2 tools)
 ├── souls/                           ← 5 SOUL.md (CEO, CFO, CTO, Legal, HR)
 ├── .github/workflows/
 │   └── openclaw-review.yml          ← Quality dept review on every PR
@@ -456,9 +473,43 @@ repos (`feat/close-gaps-v7`). 13 skills au total (11 existantes + 2 nouvelles).
 
 ---
 
-### Publication ClawHub — 11/11 skills live (1 mars 2026) + 2 nouvelles skills (7 mars 2026)
+### Session du 7 mars 2026 (suite) — 28 SKILL.md couvrant 115 tools (feat/publish-all-skills)
 
-**Statut :** 13 skills au total — 11 publiées sur ClawHub (v1.0.0) + 2 nouvelles prêtes à publier.
+**Accompli :**
+Création de 15 nouvelles SKILL.md pour couvrir **tous les 115 tools** des 25 modules Python.
+Total porté à **28 skills** (13 existantes + 15 nouvelles). Publication sur ClawHub : 16/28 publiées,
+14 en attente (rate limit 5 new skills/hour — script batch en background). Branche `feat/publish-all-skills`
+mergée dans `main` (`01aebcf`), branche nettoyée. CLAUDE.md mis à jour avec les 28 skills.
+
+**Nouvelles skills créées :**
+- `firm-gateway-hardening-pack` (5 tools), `firm-fleet-manager-pack` (6 tools),
+  `firm-runtime-audit-pack` (7 tools), `firm-advanced-security-pack` (8 tools),
+  `firm-config-migration-pack` (5 tools), `firm-reliability-pack` (4 tools),
+  `firm-observability-pack` (2 tools), `firm-memory-audit-pack` (2 tools),
+  `firm-agent-orchestration-pack` (2 tools), `firm-i18n-audit-pack` (1 tool),
+  `firm-n8n-bridge-pack` (2 tools), `firm-browser-audit-pack` (1 tool),
+  `firm-platform-audit-pack` (8 tools), `firm-ecosystem-audit-pack` (7 tools),
+  `firm-auth-compliance-pack` (8 tools), `firm-vs-bridge-pack` (4 tools),
+  `firm-skill-loader-pack` (2 tools)
+
+**Décisions d'architecture :**
+- **1 SKILL.md = 1 module Python** : mapping 1:1 entre les modules `src/*.py` et les skill packs
+  — garantit que chaque tool est documenté et publié exactement une fois
+- **`auth-compliance-pack` unifié** : regroupe `auth_compliance.py` (2 tools OAuth/OIDC) et
+  `compliance_medium.py` (6 tools M1-M6) dans un seul pack — cohérence thématique compliance
+- **Rate limit contourné par batch script** : `/tmp/publish_remaining_skills.sh` publie en
+  batches de 5 avec pause 60 min — automatise le respect de la contrainte ClawHub
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : 28 skills (était 13)
+- Table ClawHub : 28 entrées avec statut publication
+- Ce journal de session ajouté
+
+---
+
+### Publication ClawHub — 28 skills (7 mars 2026)
+
+**Statut :** 28 skills au total couvrant les 115 tools / 25 modules.
 
 | Skill | Version | Status |
 |-------|---------|--------|
@@ -472,11 +523,29 @@ repos (`feat/close-gaps-v7`). 13 skills au total (11 existantes + 2 nouvelles).
 | firm-orchestration | 1.0.0 | ✅ synced |
 | firm-saas-pack | 1.0.0 | ✅ synced |
 | firm-security-audit | 1.0.0 | ✅ synced |
-| firm-a2a-bridge | 2.0.0 | ✅ published (k97985gfejw4rsay1cgw91x15x82355j) |
-| firm-spec-compliance-pack | 1.0.0 | 🆕 ready to publish |
-| firm-prompt-security-pack | 1.0.0 | 🆕 ready to publish |
+| firm-a2a-bridge | 2.0.0 | ✅ published |
+| firm-spec-compliance-pack | 1.0.0 | ✅ published |
+| firm-prompt-security-pack | 1.0.0 | ✅ published |
+| firm-gateway-hardening-pack | 1.0.0 | ✅ published |
+| firm-fleet-manager-pack | 1.0.0 | ✅ published |
+| firm-runtime-audit-pack | 1.0.0 | ✅ published |
+| firm-advanced-security-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-config-migration-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-reliability-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-observability-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-memory-audit-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-agent-orchestration-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-i18n-audit-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-n8n-bridge-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-browser-audit-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-platform-audit-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-ecosystem-audit-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-auth-compliance-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-vs-bridge-pack | 1.0.0 | ⏳ pending (rate limit) |
+| firm-skill-loader-pack | 1.0.0 | ⏳ pending (rate limit) |
 
 **Commande de sync :** `clawhub sync --workdir /Users/romain/analyse --dir skills --no-input`
+**Publication batch :** `bash /tmp/publish_remaining_skills.sh` (3 batches de 5, pause 60 min)
 **Auth :** `romainsantoli-web` (token keyring)
 
 ---
