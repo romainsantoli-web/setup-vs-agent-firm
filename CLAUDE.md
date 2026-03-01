@@ -130,13 +130,17 @@ setup-vs-agent-firm/
     │   ├── n8n_bridge.py            ← 2 tools n8n workflow bridge (T8)
     │   ├── browser_audit.py         ← 1 tool browser automation (T10)
     │   ├── hebbian_memory.py        ← 8 tools mémoire hebbienne (CDC §3-5)
-    │   ├── a2a_bridge.py            ← 6 tools A2A Protocol v1.0 RC (G1-G6)
+    │   ├── a2a_bridge.py            ← 6 tools A2A Protocol v0.4.0 (G1-G6)
     │   ├── platform_audit.py        ← 8 tools platform alignment 2026.2 (G7-G14)
     │   ├── ecosystem_audit.py       ← 7 tools ecosystem differentiation (G15-G21)
-    │   ├── models.py                ← 96 modèles Pydantic + TOOL_MODELS + cross-field validators
-    │   └── main.py                  ← 21 modules, 96 tools enregistrés, v2.0.0
+    │   ├── spec_compliance.py       ← 7 tools MCP 2025-11-25 compliance (S4-S6, H3, H5-H7)
+    │   ├── prompt_security.py       ← 2 tools prompt injection detection (H2)
+    │   ├── auth_compliance.py       ← 2 tools OAuth/OIDC compliance (H4)
+    │   ├── compliance_medium.py     ← 6 tools M1-M6 (deprecation, circuit breaker, GDPR, DID, routing, resources)
+    │   ├── models.py                ← 113 modèles Pydantic + TOOL_MODELS + cross-field validators
+    │   └── main.py                  ← 25 modules, 113 tools enregistrés, v2.2.0
     └── tests/
-        └── test_smoke.py            ← 264 tests, 100% pass
+        └── test_smoke.py            ← 311 tests, 100% pass
 ```
 
 ---
@@ -166,6 +170,10 @@ setup-vs-agent-firm/
 | A2A Bridge | `openclaw_a2a_{card_generate,card_validate,task_send,task_status,push_config,discovery}` | A2A Protocol v1.0 RC — agent cards, task lifecycle, push notifications, discovery (G1-G6) |
 | Platform Audit | `openclaw_{secrets_v2_audit,agent_routing_check,voice_security_check,trust_model_check,autoupdate_check,plugin_sdk_check,content_boundary_check,sqlite_vec_check}` | Secrets v2 + routing + voice + trust + autoupdate + plugin SDK + content boundaries + sqlite-vec (G7-G14) |
 | Ecosystem Audit | `openclaw_{mcp_firewall_check,rag_pipeline_check,sandbox_exec_check,context_health_check,provenance_tracker,cost_analytics,token_budget_optimizer}` | MCP firewall + RAG + sandbox + context health + provenance + cost + token budget (G15-G21) |
+| Spec Compliance | `openclaw_{elicitation_audit,tasks_audit,resources_prompts_audit,audio_content_audit,json_schema_dialect_check,sse_transport_audit,icon_metadata_audit}` | MCP 2025-11-25 features audit — elicitation, tasks, resources, audio, JSON Schema 2020-12, SSE, icons (S4-S6, H3, H5-H7) |
+| Prompt Security | `openclaw_prompt_injection_check`, `openclaw_prompt_injection_batch` | 16-pattern injection/jailbreak detection — override, ChatML, DAN, base64 (H2) |
+| Auth Compliance | `openclaw_oauth_oidc_audit`, `openclaw_token_scope_check` | OAuth 2.1 / OIDC Discovery compliance — PKCE, RFC 9728, RFC 8707, scope enforcement (H4) |
+| Compliance Medium | `openclaw_{tool_deprecation_audit,circuit_breaker_audit,gdpr_residency_audit,agent_identity_audit,model_routing_audit,resource_links_audit}` | Deprecation lifecycle + circuit breaker + GDPR + DID + multi-model routing + resource links (M1-M6) |
 
 Vérifier que le serveur est actif avant toute tâche impliquant ces tools :
 ```bash
@@ -354,6 +362,37 @@ Total porté à **96 tools / 21 modules / 264 tests à 100 % / v2.0.0**. Protoco
 - Structure projet : 3 nouveaux modules + 96 models + 21 modules + 264 tests
 - Table outils : 3 nouvelles lignes (A2A Bridge 6 tools, Platform Audit 8 tools, Ecosystem Audit 7 tools)
 - Skills : `firm-a2a-bridge` ajouté
+- Ce journal de session ajouté
+
+---
+
+### Session du 6 mars 2026 — MCP 2025-11-25 Spec Compliance + Sprint 3 (feat/mcp-spec-compliance)
+
+**Accompli :**
+Implémentation complète des 20 items du TODO-MCP-COMPLIANCE-2026.md en 3 sprints.
+4 nouveaux modules Python : `spec_compliance.py` (7 tools), `prompt_security.py` (2 tools),
+`auth_compliance.py` (2 tools), `compliance_medium.py` (6 tools). A2A bridge aligné sur v0.4.0.
+Title + annotations + outputSchema injectés sur les 113 tools. Total final :
+**113 tools / 25 modules / 311 tests à 100 % / v2.2.0**. PRs créées : #6 (extensions) + #3 (parent).
+
+**Décisions d'architecture :**
+- **ConfigPathInput base class** pour M1-M6 : les 6 modèles Pydantic héritent de `ConfigPathInput`
+  (DRY — path-traversal guard + max_length en une seule classe)
+- **16 compiled regex patterns** pour prompt injection (H2) : séparation par sévérité
+  (CRITICAL pour override/ChatML, HIGH pour DAN/jailbreak, MEDIUM pour base64/exfiltration)
+- **_VALID_DID_METHODS** pour M4 : did:web, did:key, did:pkh, did:ion, did:ethr, did:jwk
+  — méthodes W3C DID Core les plus adoptées en 2026
+- **_KNOWN_PROVIDERS** pour M5 : 15 providers cloud/local (anthropic→huggingface+ollama)
+  — détection de dépendance single-provider
+- **_PII_FIELD_PATTERNS** pour M3 : 16 patterns regex pour détecter les champs PII non déclarés
+  dans les inputSchema des tools
+- **Circular deprecation detection** pour M1 : traversée du graphe de remplacement avec set de visited
+  — détecte les cycles A→B→A
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : 4 nouveaux modules + 113 models + 25 modules + 311 tests + v2.2.0
+- Table outils : 5 nouvelles lignes (Spec Compliance, Prompt Security, Auth Compliance, Compliance Medium)
+- A2A Bridge mis à jour de v1.0 RC → v0.4.0
 - Ce journal de session ajouté
 
 ---
