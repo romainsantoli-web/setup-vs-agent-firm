@@ -102,14 +102,16 @@ setup-vs-agent-firm/
 ├── README.md                        ← guide d'installation complet
 ├── factory/
 │   └── generate-firm.sh             ← générateur de firms (15 secteurs, 3 tailles)
-├── skills/                          ← SKILL.md publiables sur ClawHub
+├── skills/                          ← SKILL.md publiables sur ClawHub (13 skills)
 │   ├── firm-orchestration/          ← A2A protocol (gap #1)
 │   ├── firm-{legal,medtech,ecommerce,fintech,saas}-pack/  ← sector packs (gap #2)
 │   ├── firm-delivery-export/        ← pipeline delivrables (gap #6)
 │   ├── firm-security-audit/         ← séquence audit 5 étapes + remediations (C1,C2,C3,H8)
 │   ├── firm-acp-bridge/             ← protocoles ACP persistence + cron + locking (C4,H3,H4,H5)
 │   ├── firm-hebbian-memory/         ← mémoire adaptative hebbienne (CDC v1.0.0)
-│   └── firm-a2a-bridge/             ← A2A Protocol v1.0 RC bridge (6 tools)
+│   ├── firm-a2a-bridge/             ← A2A Protocol RC v1.0 bridge (8 tools)
+│   ├── firm-spec-compliance-pack/   ← MCP 2025-11-25 spec compliance audit (7 tools)
+│   └── firm-prompt-security-pack/   ← Prompt injection detection (2 tools, 16 patterns)
 ├── souls/                           ← 5 SOUL.md (CEO, CFO, CTO, Legal, HR)
 ├── .github/workflows/
 │   └── openclaw-review.yml          ← Quality dept review on every PR
@@ -122,6 +124,7 @@ setup-vs-agent-firm/
     │   ├── runtime_audit.py         ← 7 tools runtime & config (C5,C6,H9,H10,H11,M15,M16)
     │   ├── advanced_security.py     ← 8 tools sécurité avancée (C7,C8,C9,H12,H13,H14,H15,H16)
     │   ├── config_migration.py      ← 5 tools migration config (H17,H18,H19,M17,M21)
+    │   ├── config_helpers.py        ← DRY _load_config partagé + no_traversal guard
     │   ├── observability.py         ← 2 tools observabilité (T1,T6)
     │   ├── memory_audit.py          ← 2 tools mémoire (T3,T9)
     │   ├── agent_orchestration.py   ← 2 tools orchestration (T4)
@@ -129,18 +132,25 @@ setup-vs-agent-firm/
     │   ├── skill_loader.py          ← 2 tools skill loading (T7)
     │   ├── n8n_bridge.py            ← 2 tools n8n workflow bridge (T8)
     │   ├── browser_audit.py         ← 1 tool browser automation (T10)
-    │   ├── hebbian_memory.py        ← 8 tools mémoire hebbienne (CDC §3-5)
-    │   ├── a2a_bridge.py            ← 6 tools A2A Protocol v0.4.0 (G1-G6)
+    │   ├── hebbian_memory/          ← 8 tools mémoire hebbienne — split en 5 sous-modules
+    │   │   ├── __init__.py          ← TOOLS list + public API
+    │   │   ├── _helpers.py          ← utilitaires partagés
+    │   │   ├── _runtime.py          ← harvest, weight_update, status
+    │   │   ├── _analysis.py         ← analyze, drift_check
+    │   │   └── _validation.py       ← layer_validate, pii_check, decay_config_check
+    │   ├── a2a_bridge.py            ← 8 tools A2A Protocol RC v1.0 (cancel, subscribe, JWS signing)
     │   ├── platform_audit.py        ← 8 tools platform alignment 2026.2 (G7-G14)
     │   ├── ecosystem_audit.py       ← 7 tools ecosystem differentiation (G15-G21)
     │   ├── spec_compliance.py       ← 7 tools MCP 2025-11-25 compliance (S4-S6, H3, H5-H7)
     │   ├── prompt_security.py       ← 2 tools prompt injection detection (H2)
     │   ├── auth_compliance.py       ← 2 tools OAuth/OIDC compliance (H4)
     │   ├── compliance_medium.py     ← 6 tools M1-M6 (deprecation, circuit breaker, GDPR, DID, routing, resources)
-    │   ├── models.py                ← 113 modèles Pydantic + TOOL_MODELS + cross-field validators
-    │   └── main.py                  ← 25 modules, 113 tools enregistrés, v2.2.0
+    │   ├── models.py                ← 115+ modèles Pydantic + TOOL_MODELS + cross-field validators
+    │   └── main.py                  ← 25 modules, 115 tools enregistrés, v3.0.0
     └── tests/
-        └── test_smoke.py            ← 311 tests, 100% pass
+        ├── conftest.py              ← fixtures partagées (tmp_path, mock configs)
+        ├── test_smoke.py            ← 311 smoke tests
+        └── test_<module>.py (×22)   ← 173 tests unitaires per-module — 484 total
 ```
 
 ---
@@ -167,7 +177,7 @@ setup-vs-agent-firm/
 | n8n Bridge | `openclaw_n8n_workflow_export`, `openclaw_n8n_workflow_import` | n8n workflow export/import (T8) |
 | Browser Audit | `openclaw_browser_context_check` | Playwright/Puppeteer headless config validation (T10) |
 | Hebbian Memory | `openclaw_hebbian_{harvest,weight_update,analyze,status,layer_validate,pii_check,decay_config_check,drift_check}` | Mémoire adaptative hebbienne : harvest JSONL, poids Layer 2, co-activations, PII stripping, drift detection (CDC §3-5) |
-| A2A Bridge | `openclaw_a2a_{card_generate,card_validate,task_send,task_status,push_config,discovery}` | A2A Protocol v1.0 RC — agent cards, task lifecycle, push notifications, discovery (G1-G6) |
+| A2A Bridge | `openclaw_a2a_{card_generate,card_validate,task_send,task_status,task_cancel,subscribe,push_config,discovery}` | A2A Protocol RC v1.0 — 8 tools: agent cards, task lifecycle, cancel, subscribe SSE, push CRUD, JWS signing (G1-G8) |
 | Platform Audit | `openclaw_{secrets_v2_audit,agent_routing_check,voice_security_check,trust_model_check,autoupdate_check,plugin_sdk_check,content_boundary_check,sqlite_vec_check}` | Secrets v2 + routing + voice + trust + autoupdate + plugin SDK + content boundaries + sqlite-vec (G7-G14) |
 | Ecosystem Audit | `openclaw_{mcp_firewall_check,rag_pipeline_check,sandbox_exec_check,context_health_check,provenance_tracker,cost_analytics,token_budget_optimizer}` | MCP firewall + RAG + sandbox + context health + provenance + cost + token budget (G15-G21) |
 | Spec Compliance | `openclaw_{elicitation_audit,tasks_audit,resources_prompts_audit,audio_content_audit,json_schema_dialect_check,sse_transport_audit,icon_metadata_audit}` | MCP 2025-11-25 features audit — elicitation, tasks, resources, audio, JSON Schema 2020-12, SSE, icons (S4-S6, H3, H5-H7) |
@@ -397,9 +407,58 @@ Title + annotations + outputSchema injectés sur les 113 tools. Total final :
 
 ---
 
-### Publication ClawHub — 11/11 skills live (1 mars 2026)
+### Session du 7 mars 2026 — ANALYSIS-REPORT-v7 : 28 gaps fermés en 5 sprints (feat/close-gaps-v7)
 
-**Statut :** Toutes les skills sont publiées sur le marketplace ClawHub (v1.0.0).
+**Accompli :**
+Gap analysis complète (ANALYSIS-REPORT-v7.md) identifiant 28 gaps (7 CRITICAL, 12 HIGH, 9 MEDIUM)
+couvrant MCP 2025-11-25, A2A RC v1.0, inefficiences internes, tests, et écosystème. Implémentation
+de tous les 28 gaps en 5 sprints :
+
+- **Sprint 1** (Quick Wins) : icons sur 115 tools, `structuredContent` dans le dispatcher,
+  capability `resources` (4 URIs exposés), capability `prompts` (5 templates), DRY `_load_config`
+  (6 copies locales supprimées), nommage handlers uniformisé (17 `handle_` → bare names)
+- **Sprint 3** (A2A RC v1.0) : réécriture complète `a2a_bridge.py` — 8 tools, typed parts
+  (`TextPart`/`FilePart`/`DataPart`), `task_cancel`, `subscribe` SSE, push CRUD complet,
+  Agent Card v2 (provider, defaultInputModes, extensions, JWS signing), `contextId`, `A2A-Version`
+- **Sprint 4** (Tests) : 22 fichiers `test_<module>.py` + `conftest.py` avec fixtures partagées
+  (tmp_path, mock configs), `pytest-cov` configuré, 484 tests à 100 %
+- **Sprint 2+5** (Advanced MCP) : resource links dans responses, `MCP-Protocol-Version` header,
+  elicitation capability, tasks/durable requests, SSE polling/resumption, split `hebbian_memory`
+  (1560 LoC → 5 sous-modules), 2 nouvelles SKILL.md publiées
+
+Total final : **115 tools / 25 modules / 484 tests à 100 % / v3.0.0**. Branches pushées sur les deux
+repos (`feat/close-gaps-v7`). 13 skills au total (11 existantes + 2 nouvelles).
+
+**Décisions d'architecture :**
+- **Typed A2A Parts** : suppression du discriminator `kind` — adoption de `TextPart`, `FilePart`,
+  `DataPart` conformes RC v1.0 (breaking change vs v0.4.0)
+- **JWS signing** avec `jwcrypto` : signature Ed25519/ES256 des Agent Cards — clé privée PEM
+  via env `A2A_SIGNING_KEY` ou fichier
+- **SSE subscribe** : `SubscribeToTask` retourne un stream SSE avec `task.status` events —
+  implémentation in-memory avec `asyncio.Event` pour le signaling
+- **Push CRUD complet** : Create/Get/List/Delete push configs — stockage in-memory dict
+  `_PUSH_CONFIGS` indexé par `(task_id, push_id)`
+- **Resources exposées** : 4 URIs (`config://openclaw/main`, `skill://*`, `soul://*`,
+  `audit://openclaw/last-run`) — capability `resources` avec `listChanged: true`
+- **Prompts templates** : 5 prompts MCP (`security-audit`, `a2a-card-review`, `gap-analysis`,
+  `config-review`, `tool-deprecation-plan`) — capability `prompts` avec `listChanged: true`
+- **Hebbian memory split** : `__init__.py` (public API), `_helpers.py`, `_runtime.py`,
+  `_analysis.py`, `_validation.py` — imports rétro-compatibles
+- **conftest.py fixtures** : `tmp_config` (JSON + YAML), `mock_node_binary`, `sample_soul_md`,
+  `mock_a2a_agent_url` — couvre 80% des besoins de mock
+
+**Améliorations appliquées à ce CLAUDE.md :**
+- Structure projet : hebbian_memory split en 5 sous-modules, tests/ étendu (conftest + 22 fichiers)
+- Skills : 13 skills (ajout firm-spec-compliance-pack, firm-prompt-security-pack)
+- A2A Bridge : 8 tools (ajout cancel, subscribe, push CRUD)
+- Version : v2.2.0 → v3.0.0, 113 → 115 tools, 311 → 484 tests
+- Ce journal de session ajouté
+
+---
+
+### Publication ClawHub — 11/11 skills live (1 mars 2026) + 2 nouvelles skills (7 mars 2026)
+
+**Statut :** 13 skills au total — 11 publiées sur ClawHub (v1.0.0) + 2 nouvelles prêtes à publier.
 
 | Skill | Version | Status |
 |-------|---------|--------|
@@ -413,7 +472,9 @@ Title + annotations + outputSchema injectés sur les 113 tools. Total final :
 | firm-orchestration | 1.0.0 | ✅ synced |
 | firm-saas-pack | 1.0.0 | ✅ synced |
 | firm-security-audit | 1.0.0 | ✅ synced |
-| firm-a2a-bridge | 1.0.0 | ✅ published (k97985gfejw4rsay1cgw91x15x82355j) |
+| firm-a2a-bridge | 2.0.0 | ✅ published (k97985gfejw4rsay1cgw91x15x82355j) |
+| firm-spec-compliance-pack | 1.0.0 | 🆕 ready to publish |
+| firm-prompt-security-pack | 1.0.0 | 🆕 ready to publish |
 
 **Commande de sync :** `clawhub sync --workdir /Users/romain/analyse --dir skills --no-input`
 **Auth :** `romainsantoli-web` (token keyring)
