@@ -120,3 +120,11 @@ Use firm-delivery-export to publish last workflow result as a GitHub PR:
    → Labels: ai-generated, needs-review, documentation
    → Assigns to @team-engineering for review
 ```
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

@@ -162,3 +162,11 @@ Use the firm-orchestration skill to:
   definition_of_done: "Security report with CVSS scores and fix recommendations"
   delivery_format: "markdown_report"
 ```
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

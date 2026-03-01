@@ -108,3 +108,11 @@ Use firm-orchestration with:
 - PHI (Protected Health Information): `SECURE_PRODUCTION_MODE=true` mandatory
 - All outputs must be anonymized: enforce via `POLICY_BLOCKED_TOOLS` for export
 - Audit trail required by 21 CFR Part 11: `AUDIT_ENABLED=true`
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

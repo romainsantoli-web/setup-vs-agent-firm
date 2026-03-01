@@ -107,3 +107,11 @@ Use firm-orchestration with:
 | Localization | `translation` → `translation-precision` | Claude Haiku |
 | Data analysis | `research` → `analysis-deep` | Claude Opus |
 | PR description | `debug` → `reasoning-technical` | Claude Sonnet |
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

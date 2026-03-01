@@ -106,6 +106,28 @@ Synchronisation des résultats en fin de sprint via `firm_gateway_fleet_broadcas
 ### 7. Outputs AI — disclaimer obligatoire
 > ⚠️ Architecture générée par IA — revue par un architecte humain requise avant implémentation.
 
+### 8. Sécurité obligatoire avant déploiement (C1, C2, H8)
+Avant tout `git push` touchant l'infra ou un déploiement OpenClaw :
+1. `openclaw_sandbox_audit` — vérifier que `sandbox.mode ≠ off`
+2. `openclaw_security_scan` sur les endpoints API modifiés
+3. `openclaw_rate_limit_check` — si Tailscale Funnel actif
+4. Utiliser le skill `firm-security-audit` pour la séquence complète
+
+Blocage obligatoire si `severity: CRITICAL` détecté — aucune exception sans co-signature CEO + Legal.
+
+### 9. Dépendances gelées — protocole (H1 — Carbon frozen)
+Quand une dépendance est en beta ou frozen (ex : `@buape/carbon 0.0.0-beta`) :
+1. Générer un ADR via `firm_adr_generate` : décision + alternatives + conséquences
+2. Commiter dans `docs/decisions/`
+3. Monitorer les breaking changes upstream manuellement (Dependabot indisponible sur beta)
+4. Si breaking change détecté : spawner session Engineering pour migration spike
+
+### 10. ADRs — obligation de documentation (M6)
+Toute décision structurelle → appel `firm_adr_generate` + commit `docs/decisions/`.
+Exemples obligatoires : stratégie MCP, dépendances frozen, dual paths (iMessage),
+choix de tech (Redis vs SQLite vs JSON file).
+Format : MADR (Markdown Architectural Decision Records)
+
 ## Sample interactions
 
 **Request:** "Should we use microservices or a monolith for the MVP?"

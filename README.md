@@ -4,7 +4,7 @@
 > [OpenClaw](https://github.com/openclaw/openclaw) (239k ⭐) and
 > [ClawHub](https://clawhub.ai).
 >
-> Fills **8 concrete technical gaps** not covered by the existing 13,729-skill ecosystem.
+> Fills **47 documented gaps** not covered by the existing 13,729-skill ecosystem.
 
 ---
 
@@ -13,7 +13,7 @@
 1. [Architecture](#architecture)
 2. [Prerequisites](#prerequisites)
 3. [Quick-start (5 minutes)](#quick-start)
-4. [What was built — the 8 gaps](#what-was-built--the-8-gaps)
+4. [What was built — the 33 gaps](#what-was-built--the-33-gaps)
 5. [Skills (ClawHub)](#skills-clawhub)
 6. [Factory — generate a firm in one command](#factory--generate-a-firm-in-one-command)
 7. [MCP server — mcp-openclaw-extensions](#mcp-server--mcp-openclaw-extensions)
@@ -47,7 +47,7 @@
                        │ ClawHub skills
           ┌────────────▼────────────┐
           │  ClawHub  (5,494+ skills│
-          │  + 7 new firm skills)   │
+          │  + 9 new firm skills)   │
           └─────────────────────────┘
 ```
 
@@ -109,7 +109,9 @@ bash scripts/status.sh
 
 ---
 
-## What was built — the 8 gaps
+## What was built — the 33 gaps
+
+### Phase 1 — Infrastructure (gaps 1-8)
 
 | # | Gap | What | Location |
 |---|-----|------|----------|
@@ -121,6 +123,89 @@ bash scripts/status.sh
 | 6 | Deliverables pipeline | Export to GitHub PR / Jira / Linear / Slack / doc | `mcp-openclaw-extensions/src/delivery_export.py` |
 | 7 | CI/CD review agent | GitHub Actions — OpenClaw Quality dept reviews every PR | `.github/workflows/openclaw-review.yml` |
 | 8 | SOUL corporate personas | 5 executive personas (CEO/CFO/CTO/Legal/HR) | `souls/` |
+
+### Phase 2 — Security & Reliability (gaps 9-26, OpenClaw audit)
+
+| ID | Sev | Gap | Tool / Location |
+|----|-----|-----|-----------------|
+| C1 | 🔴 CRITICAL | SQL injection in API endpoints | `openclaw_security_scan` |
+| C2 | 🔴 CRITICAL | Sandbox disabled (`mode: off`) | `openclaw_sandbox_audit` |
+| C3 | 🔴 CRITICAL | SESSION_SECRET ephemeral / missing | `openclaw_session_config_check` |
+| C4 | 🔴 CRITICAL | ACP sessions lost on restart | `acp_session_persist/restore` |
+| H1 | 🟠 HIGH | `@buape/carbon` frozen at 0.0.0-beta | `firm_adr_generate` + CTO SOUL.md |
+| H2 | 🟠 HIGH | Gateway Funnel without auth.mode=password | `openclaw_gateway_auth_check` |
+| H3 | 🟠 HIGH | Spawned sessions get no env vars | `fleet_session_inject_env` |
+| H4 | 🟠 HIGH | Cron not blocked in sandbox | `fleet_cron_schedule` |
+| H5 | 🟠 HIGH | Race condition on workspace lock | `openclaw_workspace_lock` |
+| H6 | 🟠 HIGH | Gateway silently drops on macOS sleep | `openclaw_gateway_probe` |
+| H7 | 🟠 HIGH | WS close code 1006 not handled | `openclaw_gateway_probe` |
+| H8 | 🟠 HIGH | No rate limiting on Tailscale Funnel | `openclaw_rate_limit_check` |
+| M1 | 🟡 MED | `@line/bot-sdk` zombie dep | `openclaw_channel_audit` |
+| M2 | 🟡 MED | Test coverage threshold 70% | factory 80% + CTO SOUL.md |
+| M3 | 🟡 MED | Baileys creds.json no integrity/age check | `openclaw_credentials_check` |
+| M4 | 🟡 MED | Webhook HMAC signature verification missing | `openclaw_webhook_sig_check` |
+| M5 | 🟡 MED | Docs version stale vs package.json | `openclaw_doc_sync_check` |
+| M6 | 🟡 MED | No ADRs for architecture decisions | `firm_adr_generate` |
+| M7 | 🟡 MED | Logging verbose / missing redactPatterns | `openclaw_log_config_check` |
+| M8 | 🟡 MED | ~/.openclaw/workspace integrity unchecked | `openclaw_workspace_integrity_check` |
+| M9 | 🟡 MED | Factory generates no CONTRIBUTING.md | `factory/generate-firm.sh` |
+
+### Phase 3 — Runtime & Config Audit (gaps 27-33, CHANGELOG ≤ 2026.2.27)
+
+| ID | Sev | Gap | Coverage |
+|----|-----|-----|----------|
+| C5 | 🔴 CRI | Node.js < 22.12.0 (CVE-2025-59466, CVE-2026-21636) | `openclaw_node_version_check` |
+| C6 | 🔴 CRI | Hardcoded secrets in openclaw.json (no `openclaw secrets` workflow, 2026.2.26) | `openclaw_secrets_workflow_check` |
+| H9 | 🟠 HIGH | HTTP security headers absent on public bind (HSTS, X-Content-Type-Options, Referrer-Policy) | `openclaw_http_headers_check` |
+| H10 | 🟠 HIGH | `gateway.nodes.allowCommands` dangerous override (CRITICAL if remote-exposed) | `openclaw_nodes_commands_check` |
+| H11 | 🟠 HIGH | Trusted-proxy misconfigured: bind + trustedProxies + auth mode incoherent | `openclaw_trusted_proxy_check` |
+| M15 | 🟡 MED | Session disk budget not configured (`session.maintenance.maxDiskBytes`) | `openclaw_session_disk_budget_check` |
+| M16 | 🟡 MED | `dmPolicy=allowlist` with empty `allowFrom` (fail-open, 9 channels checked) | `openclaw_dm_allowlist_check` |
+
+### Phase 4 — Advanced Security & Config Migration (gaps 34-46)
+
+| ID | Sev | Gap | Coverage |
+|----|-----|-----|----------|
+| C7 | 🔴 CRI | External Secrets lifecycle not validated | `openclaw_secrets_lifecycle_check` |
+| C8 | 🔴 CRI | Plugin channel HTTP auth bypass (path canonicalization) | `openclaw_channel_auth_canon_check` |
+| C9 | 🔴 CRI | Exec approval plan mutability (symlink cwd rebind) | `openclaw_exec_approval_freeze_check` |
+| H12 | 🟠 HIGH | Hook session-key routing unrestricted | `openclaw_hook_session_routing_check` |
+| H13 | 🟠 HIGH | Config $include hardlink escape + file-size | `openclaw_config_include_check` |
+| H14 | 🟠 HIGH | Prototype pollution in config merge | `openclaw_config_prototype_check` |
+| H15 | 🟠 HIGH | SafeBins without explicit profile | `openclaw_safe_bins_profile_check` |
+| H16 | 🟠 HIGH | Group policy default not fail-closed | `openclaw_group_policy_default_check` |
+| H17 | 🟠 HIGH | Shell env not sanitized (LD_PRELOAD, DYLD_*) | `openclaw_shell_env_check` |
+| H18 | 🟠 HIGH | Plugin install integrity/pin not tracked | `openclaw_plugin_integrity_check` |
+| H19 | 🟠 HIGH | hooks.token = gateway.auth.token (reuse) | `openclaw_token_separation_check` |
+| M17 | 🟡 MED | OTEL secret redaction missing in diagnostics | `openclaw_otel_redaction_check` |
+| M21 | 🟡 MED | Control-plane RPC rate limiting absent | `openclaw_rpc_rate_limit_check` |
+
+### Phase 5 — Trending MCP tools (T1-T10)
+
+| ID | Tool | Description |
+|----|------|-------------|
+| T1 | `openclaw_observability_pipeline` | Ingest JSONL traces into SQLite |
+| T3 | `openclaw_pgvector_memory_check` | Verify pgvector config (HNSW, dimensions) |
+| T4 | `openclaw_agent_team_orchestrate` | Task DAG with topological sort + parallel layers |
+| T5 | `openclaw_i18n_audit` | Locale file scanning + missing key detection |
+| T6 | `openclaw_ci_pipeline_check` | CI workflow completeness (lint, test, secrets) |
+| T7 | `openclaw_skill_lazy_loader` / `skill_search` | Lazy SKILL.md loading + keyword search |
+| T8 | `openclaw_n8n_workflow_export` / `import` | n8n workflow bridge (export + import) |
+| T9 | `openclaw_knowledge_graph_check` | Knowledge graph integrity (orphans, cycles, TTL) |
+| T10 | `openclaw_browser_context_check` | Playwright/Puppeteer headless config validation |
+
+### Phase 6 — Hebbian Adaptive Memory (CDC v1.0.0)
+
+| Tool | Description |
+|------|-------------|
+| `openclaw_hebbian_harvest` | Ingest JSONL session logs → SQLite (PII stripped) |
+| `openclaw_hebbian_weight_update` | Compute/apply Hebbian weight updates on Layer 2 |
+| `openclaw_hebbian_analyze` | Co-activation pattern analysis (Jaccard similarity) |
+| `openclaw_hebbian_status` | Dashboard: weights, atrophy, promotions |
+| `openclaw_hebbian_layer_validate` | Validate 4-layer Claude.md structure |
+| `openclaw_hebbian_pii_check` | Audit PII stripping config |
+| `openclaw_hebbian_decay_config_check` | Validate learning rate, decay, thresholds |
+| `openclaw_hebbian_drift_check` | Cosine similarity drift detection vs baseline |
 
 ---
 
@@ -134,7 +219,10 @@ skills/
 ├── firm-ecommerce-pack/    # E-commerce/D2C/marketplace
 ├── firm-fintech-pack/      # Fintech/neobank/AML/KYC
 ├── firm-saas-pack/         # SaaS/PLG
-└── firm-delivery-export/   # Deliverables pipeline skill
+├── firm-delivery-export/   # Deliverables pipeline skill
+├── firm-security-audit/    # 5-step security audit sequence (C1,C2,C3,H8)
+├── firm-acp-bridge/        # ACP persistence + cron + locking (C4,H3,H4,H5)
+└── firm-hebbian-memory/    # Adaptive Hebbian memory system (CDC v1.0.0)
 ```
 
 Install all skills at once:
@@ -144,7 +232,7 @@ Install all skills at once:
 bash ./my-firm/scripts/install-skills.sh
 
 # Or manually via ClawHub CLI
-clawhub install firm-orchestration firm-saas-pack firm-delivery-export
+clawhub install firm-orchestration firm-saas-pack firm-delivery-export firm-security-audit firm-acp-bridge
 ```
 
 Each `SKILL.md` file is directly publishable to ClawHub with the standard YAML frontmatter.
@@ -204,26 +292,31 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (16 total)
+### Tools (75 total — 19 modules)
 
-| Module | Tool | Description |
-|--------|------|-------------|
-| vs_bridge | `vs_context_push` | Push VS Code context → OpenClaw session |
-| vs_bridge | `vs_context_pull` | Pull OpenClaw session state → VS Code |
-| vs_bridge | `vs_session_link` | Associate workspace path ↔ session ID |
-| vs_bridge | `vs_session_status` | Bridge health check |
-| gateway_fleet | `firm_gateway_fleet_status` | Parallel health check all instances |
-| gateway_fleet | `firm_gateway_fleet_add` | Register a new Gateway instance |
-| gateway_fleet | `firm_gateway_fleet_remove` | Remove an instance |
-| gateway_fleet | `firm_gateway_fleet_broadcast` | Send message to all instances |
-| gateway_fleet | `firm_gateway_fleet_sync` | Sync config+skills to all instances |
-| gateway_fleet | `firm_gateway_fleet_list` | List instances with filter |
-| delivery_export | `firm_export_github_pr` | Create draft PR on GitHub |
-| delivery_export | `firm_export_jira_ticket` | Create Jira ticket (ADF) |
-| delivery_export | `firm_export_linear_issue` | Create Linear issue (GraphQL) |
-| delivery_export | `firm_export_slack_digest` | Post Slack digest (Block Kit) |
-| delivery_export | `firm_export_document` | Write local Markdown deliverable |
-| delivery_export | `firm_export_auto` | Auto-route by delivery_format |
+See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for the complete tool reference.
+
+| Category | Count | Modules |
+|----------|-------|---------|
+| VS Code Bridge | 4 | `vs_bridge` |
+| Fleet Management | 6 | `gateway_fleet` |
+| Delivery Pipeline | 6 | `delivery_export` |
+| Security Audit | 4 | `security_audit` |
+| ACP Bridge | 6 | `acp_bridge` |
+| Reliability | 4 | `reliability_probe` |
+| Gateway Hardening | 5 | `gateway_hardening` |
+| Runtime Audit | 7 | `runtime_audit` |
+| Advanced Security | 8 | `advanced_security` |
+| Config Migration | 5 | `config_migration` |
+| Observability | 2 | `observability` |
+| Memory Audit | 2 | `memory_audit` |
+| Agent Orchestration | 2 | `agent_orchestration` |
+| i18n Audit | 1 | `i18n_audit` |
+| Skill Loader | 2 | `skill_loader` |
+| n8n Bridge | 2 | `n8n_bridge` |
+| Browser Audit | 1 | `browser_audit` |
+| Hebbian Memory | 8 | `hebbian_memory` |
+| **Shared helpers** | — | `config_helpers` |
 
 ### Start / stop / status
 
@@ -286,14 +379,19 @@ pip install -r requirements-dev.txt
 python -m pytest tests/test_smoke.py -v
 ```
 
-Tests cover:
+**207 tests**, 100% pass — covering:
 - Server starts and answers `ping`
-- `initialize` returns correct capabilities
-- All 16 tools registered with valid `inputSchema`
+- `initialize` returns correct capabilities + version
+- All 75 tools registered with valid `inputSchema`
 - `vs_context_push` degrades gracefully without Gateway
 - `firm_export_document` writes local file
 - Unknown method returns JSON-RPC error -32601
 - Unknown tool returns descriptive error
+- Timing-safe auth (I21), SQL injection guard (I24), session_id regex (I41)
+- ConfigPathInput traversal blocking across all 21 config-path models
+- Health/healthz endpoints return correct tool count + version
+- Config helpers: `load_config`, `get_nested`, `mask_secret`
+- Hebbian memory: harvest PII stripping, weight updates, layer validation, drift detection, Pydantic guards
 
 ---
 
@@ -335,7 +433,12 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 ## Security
 
 - **GitHub PRs**: always created as drafts with `needs-review` label — never auto-merged
-- **Tokens**: masked in all logs via `_mask_secret()` — only last 4 chars shown
+- **Auth**: timing-safe `hmac.compare_digest` on Bearer token (I21)
+- **Request cap**: `client_max_size=2MB` on aiohttp (I22)
+- **Tool timeout**: `asyncio.wait_for` with configurable `TOOL_TIMEOUT_S` (default 120s) (I23)
+- **SQL injection guard**: `table_name` validated by regex `^[a-zA-Z_][a-zA-Z0-9_]{0,127}$` + runtime whitelist (I24)
+- **Session ID**: regex pattern `^[a-zA-Z0-9_\-:.]+$` on all session_id fields (I41)
+- **Tokens**: masked in all logs via `mask_secret()` — only last 4 chars shown
 - **Context cap**: `MAX_CONTEXT_BYTES=32768` — WS payloads never exceed 32KB
 - **Fleet persistence**: `~/.openclaw/fleet.json` written atomically (rename from `.tmp`)
 - **MCP kwargs**: filtered via `inspect.signature` — no parameter injection

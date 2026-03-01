@@ -111,3 +111,11 @@ Use firm-orchestration with:
 - `AUDIT_ENABLED=true` with immutable JSONL audit trail
 - `READ_ONLY_MODE=true` for all regulatory review workflows
 - Sandbox all non-main sessions: `sandbox.mode: "non-main"`
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`

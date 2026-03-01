@@ -378,11 +378,19 @@ Format attendu :
 - Toute modification de code sur branche dédiée \`feat/<slug>\` — jamais directement sur \`main\`
 - PRs créées en **draft** avec label \`needs-review\` — jamais auto-merge
 - Tests écrits après l'implémentation de chaque feature (100 % pass avant push)
+- Coverage minimum : **80 %** (lignes + branches + fonctions) — 1 test positif + 1 test négatif par tool/fonction
 
 ### Débogage (si Security ou Engineering)
 - Analyser la stack trace complète AVANT de proposer un fix
 - Fournir les commandes exactes à exécuter — pas seulement le diagnostic
 - Tracer le flux de contrôle dans le codebase pour localiser la cause racine
+
+### Sécurité avant déploiement (si Engineering ou Security)
+- Avant tout push infra : \`openclaw_sandbox_audit\` + \`openclaw_security_scan\` sur les endpoints modifiés
+- Si \`severity: CRITICAL\` → bloquer le merge — fix obligatoire avant tout push
+- Si Tailscale Funnel actif : vérifier \`openclaw_rate_limit_check\`
+- Dépendance beta/frozen → ADR obligatoire via \`firm_adr_generate\` + commit \`docs/decisions/\` avant merge
+- Toute décision d'architecture → \`firm_adr_generate\` (format MADR) + commit \`docs/decisions/\`
 
 ### Outputs AI
 > ⚠️ Contenu généré par IA — validation humaine requise avant utilisation
@@ -441,6 +449,12 @@ Tu es l'agent employé responsable du service **${SVC_LABEL}** dans le départem
 - Fournir la commande exacte qui résout le problème — pas seulement le diagnostic
 - Si une action est ambiguë : proposer l'alternative la plus sûre, ne pas deviner
 
+### Sécurité (si service security, backend, integration ou ai-engineering)
+- Avant tout push : \`openclaw_sandbox_audit\` + \`openclaw_security_scan\` sur le code modifié
+- Si \`severity: CRITICAL\` → ne pas pousser — remonter au département immédiatement
+- Dépendance beta/frozen → ADR obligatoire via \`firm_adr_generate\` avant merge
+- Coverage minimum : **80 %** — 1 test positif + 1 test négatif par fonction/tool
+
 ### Output
 > ⚠️ Contenu généré par IA — validation humaine requise avant utilisation
 
@@ -495,6 +509,8 @@ Lance une orchestration complète avec les paramètres suivants :
 6. Formate selon le delivery_format demandé
 7. Si firm-delivery-export est installé, déclenche l'export automatiquement
 8. Persiste le résultat en mémoire (clé: delivery/latest)
+9. Si \`decision_type: architecture\` détecté dans l'objectif → déclencher \`firm_adr_generate\`
+   et commiter le résultat dans \`docs/decisions/\` avant de livrer
 
 ## Protocole Anthropic (obligatoire)
 
@@ -694,6 +710,88 @@ Vérifier : \`bash mcp-openclaw-extensions/scripts/status.sh\`
 Rôle humain = **supervision** + **review** + **architecture**. Délègue le bas niveau.
 "
 write_file "$OUTPUT_DIR/CLAUDE.md" "$CLAUDE_CONTENT"
+
+# ── CONTRIBUTING.md (M9 — firm contribution guide) ────────────────────────────
+CONTRIBUTING_CONTENT="# Contributing to ${FIRM_NAME}
+
+> ⚠️ Contenu généré automatiquement — adapter avant publication.
+
+Bienvenue ! Ce projet valorise les contributions humaines **et** les PRs vibe-codées / IA-assisted. Voici comment contribuer efficacement.
+
+---
+
+## 🚀 Quick start
+
+\`\`\`bash
+git clone <repo-url>
+cd ${SLUG}
+bash scripts/install-skills.sh
+\`\`\`
+
+---
+
+## 🤝 Comment contribuer
+
+### 1. Issues
+- Ouvre une issue avant de coder une feature significative
+- Label **\`good first issue\`** → tâches idéales pour débuter
+- Label **\`ai-assisted\`** → PRs générées en tout ou partie par IA
+
+### 2. Pull Requests
+
+**Checklist obligatoire avant de soumettre une PR :**
+
+- [ ] Branche dédiée : \`feat/<slug>\`, \`fix/<slug>\`, \`chore/<slug>\`
+- [ ] \`python -m pytest tests/ -v\` → **100 % pass**
+- [ ] Coverage ≥ 80 % (\`pytest --cov\`)
+- [ ] Aucun secret dans le diff (\`git diff HEAD | grep -i token\`)
+- [ ] Output IA marqué : \`⚠️ Contenu généré par IA — validation humaine requise\`
+- [ ] \`CLAUDE.md\` mis à jour si nouvelle pratique découverte
+- [ ] Commit message : \`type(scope): description courte\`
+
+### 3. PRs vibe-codées / IA-assisted
+
+Les PRs générées avec Claude, Copilot ou tout autre outil IA sont **les bienvenues** — ajoutez simplement le label \`ai-assisted\` et précisez l'outil utilisé dans la description.
+
+---
+
+## 🔒 Signalement de vulnérabilités
+
+**Ne pas ouvrir d'issue publique pour une faille de sécurité.**
+
+Envoyer un email à : security@${SLUG}.example.com  
+(ou ouvrir une issue privée via GitHub Security Advisories)
+
+Inclure :
+1. Description de la vulnérabilité
+2. Étapes de reproduction
+3. Impact estimé
+4. Correctif proposé (optionnel)
+
+Réponse garantie sous 72h.
+
+---
+
+## 📋 Labels disponibles
+
+| Label | Description |
+|-------|-------------|
+| \`good first issue\` | Idéal pour débuter |
+| \`ai-assisted\` | PR générée partiellement ou totalement par IA |
+| \`needs-review\` | En attente de review humaine |
+| \`security\` | Impact sécurité |
+| \`breaking-change\` | Modifie l'API ou le comportement |
+| \`documentation\` | Uniquement de la doc |
+
+---
+
+## 📖 Ressources
+
+- [CLAUDE.md](CLAUDE.md) — règles et workflows de ce projet
+- [README.md](README.md) — guide d'installation
+- [OpenClaw docs](https://docs.openclaw.ai)
+"
+write_file "$OUTPUT_DIR/CONTRIBUTING.md" "$CONTRIBUTING_CONTENT"
 
 # ── 7. OpenClaw skill installer ───────────────────────────────
 # Compute optional sector skill line before building string

@@ -101,3 +101,11 @@ Use firm-orchestration with:
 | Code review | `engineering` → `reasoning-technical` | Claude Sonnet |
 | Data analysis | `finance` → `analysis-deep` | Claude Opus |
 | Product description | `marketing` → `translation-precision` | Claude Haiku |
+
+---
+
+## 💎 Support
+
+Si ce skill vous est utile, vous pouvez soutenir le développement :
+
+**Dogecoin** : `DQBggqFNWsRNTPb6kkiwppnMo1Hm8edfWq`
