@@ -397,6 +397,29 @@ Title + annotations + outputSchema injectés sur les 113 tools. Total final :
 
 ---
 
+### Publication ClawHub — 11/11 skills live (1 mars 2026)
+
+**Statut :** Toutes les skills sont publiées sur le marketplace ClawHub (v1.0.0).
+
+| Skill | Version | Status |
+|-------|---------|--------|
+| firm-acp-bridge | 1.0.0 | ✅ synced |
+| firm-delivery-export | 1.0.0 | ✅ synced |
+| firm-ecommerce-pack | 1.0.0 | ✅ synced |
+| firm-fintech-pack | 1.0.0 | ✅ synced |
+| firm-hebbian-memory | 1.0.0 | ✅ synced |
+| firm-legal-pack | 1.0.0 | ✅ synced |
+| firm-medtech-pack | 1.0.0 | ✅ synced |
+| firm-orchestration | 1.0.0 | ✅ synced |
+| firm-saas-pack | 1.0.0 | ✅ synced |
+| firm-security-audit | 1.0.0 | ✅ synced |
+| firm-a2a-bridge | 1.0.0 | ✅ published (k97985gfejw4rsay1cgw91x15x82355j) |
+
+**Commande de sync :** `clawhub sync --workdir /Users/romain/analyse --dir skills --no-input`
+**Auth :** `romainsantoli-web` (token keyring)
+
+---
+
 ## 🔑 PHILOSOPHIE
 
 > "Utilise l'IA aussi agressivement que possible — c'est la seule façon de repousser
