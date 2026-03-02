@@ -313,7 +313,7 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (136 total — 29 modules)
+### Tools (138 total — 29 modules)
 
 See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for the complete tool reference.
 
@@ -323,7 +323,7 @@ See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for t
 | Fleet Management | 6 | `gateway_fleet` |
 | Delivery Pipeline | 6 | `delivery_export` |
 | Security Audit | 4 | `security_audit` |
-| ACP Bridge | 6 | `acp_bridge` |
+| ACP Bridge | 7 | `acp_bridge` |
 | Reliability | 4 | `reliability_probe` |
 | Gateway Hardening | 5 | `gateway_hardening` |
 | Runtime Audit | 7 | `runtime_audit` |
@@ -338,7 +338,7 @@ See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for t
 | Browser Audit | 1 | `browser_audit` |
 | Hebbian Memory | 8 | `hebbian_memory` |
 | A2A Bridge | 8 | `a2a_bridge` |
-| Platform Audit | 8 | `platform_audit` |
+| Platform Audit | 9 | `platform_audit` |
 | Ecosystem Audit | 7 | `ecosystem_audit` |
 | Spec Compliance | 7 | `spec_compliance` |
 | Prompt Security | 2 | `prompt_security` |
