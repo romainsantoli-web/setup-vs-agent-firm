@@ -313,7 +313,7 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (115 total — 25 modules)
+### Tools (121 total — 26 modules)
 
 See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for the complete tool reference.
 
@@ -344,6 +344,7 @@ See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for t
 | Prompt Security | 2 | `prompt_security` |
 | Auth Compliance | 2 | `auth_compliance` |
 | Compliance Medium | 6 | `compliance_medium` |
+| **Market Research** | **6** | **`market_research`** |
 | **Shared helpers** | — | `config_helpers` |
 
 ### Start / stop / status
@@ -364,11 +365,12 @@ Publishable to [onlycrabs.ai](https://onlycrabs.ai) registry.
 
 ```
 souls/
-├── firm-ceo/            # Alexandra Meridian — strategic orchestrator
-├── firm-cfo/            # Marcus Venn — financial architecture
-├── firm-cto/            # Soren Hales — technical excellence
-├── firm-legal-analyst/  # Inés Clavero — regulatory radar
-└── firm-hr-director/    # Camille Osei — people systems
+├── firm-ceo/                # Alexandra Meridian — strategic orchestrator
+├── firm-cfo/                # Marcus Venn — financial architecture
+├── firm-cto/                # Soren Hales — technical excellence
+├── firm-legal-analyst/      # Inés Clavero — regulatory radar
+├── firm-hr-director/        # Camille Osei — people systems
+└── firm-market-research/    # Élise Montblanc — competitive intelligence
 ```
 
 Each SOUL.md contains: identity, core values, communication style, decision framework,
