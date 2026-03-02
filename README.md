@@ -47,7 +47,7 @@
                        │ ClawHub skills
           ┌────────────▼────────────┐
           │  ClawHub  (5,494+ skills│
-          │  + 9 new firm skills)   │
+          │  + 30 firm skills)      │
           └─────────────────────────┘
 ```
 
@@ -209,20 +209,40 @@ bash scripts/status.sh
 
 ---
 
-## Skills (ClawHub)
+## Skills (ClawHub) — 30 skills
 
 ```
 skills/
-├── firm-orchestration/     # A2A pyramid handoff protocol
-├── firm-legal-pack/        # Legal/compliance sector bundle
-├── firm-medtech-pack/      # MedTech/pharma (FDA/CE/ISO 13485)
-├── firm-ecommerce-pack/    # E-commerce/D2C/marketplace
-├── firm-fintech-pack/      # Fintech/neobank/AML/KYC
-├── firm-saas-pack/         # SaaS/PLG
-├── firm-delivery-export/   # Deliverables pipeline skill
-├── firm-security-audit/    # 5-step security audit sequence (C1,C2,C3,H8)
-├── firm-acp-bridge/        # ACP persistence + cron + locking (C4,H3,H4,H5)
-└── firm-hebbian-memory/    # Adaptive Hebbian memory system (CDC v1.0.0)
+├── firm-orchestration/           # A2A pyramid handoff protocol
+├── firm-legal-pack/              # Legal/compliance sector bundle
+├── firm-medtech-pack/            # MedTech/pharma (FDA/CE/ISO 13485)
+├── firm-ecommerce-pack/          # E-commerce/D2C/marketplace
+├── firm-fintech-pack/            # Fintech/neobank/AML/KYC
+├── firm-saas-pack/               # SaaS/PLG
+├── firm-delivery-export/         # Deliverables pipeline skill
+├── firm-security-audit/          # 5-step security audit sequence
+├── firm-acp-bridge/              # ACP persistence + cron + locking
+├── firm-hebbian-memory/          # Adaptive Hebbian memory system
+├── firm-a2a-bridge/              # A2A Protocol RC v1.0 bridge (8 tools)
+├── firm-spec-compliance-pack/    # MCP 2025-11-25 spec compliance (7 tools)
+├── firm-prompt-security-pack/    # Prompt injection detection (2 tools)
+├── firm-gateway-hardening-pack/  # Gateway auth + credentials (5 tools)
+├── firm-fleet-manager-pack/      # Fleet multi-instances Gateway (6 tools)
+├── firm-runtime-audit-pack/      # Runtime & config audit (7 tools)
+├── firm-advanced-security-pack/  # Advanced security (8 tools)
+├── firm-config-migration-pack/   # Config migration (5 tools)
+├── firm-reliability-pack/        # Reliability + ADR (4 tools)
+├── firm-observability-pack/      # JSONL→SQLite traces + CI (2 tools)
+├── firm-memory-audit-pack/       # pgvector + knowledge graph (2 tools)
+├── firm-agent-orchestration-pack/ # DAG task execution (2 tools)
+├── firm-i18n-audit-pack/         # Locale scanning (1 tool)
+├── firm-n8n-bridge-pack/         # n8n workflow bridge (2 tools)
+├── firm-browser-audit-pack/      # Browser automation audit (1 tool)
+├── firm-platform-audit-pack/     # Platform alignment 2026.2 (8 tools)
+├── firm-ecosystem-audit-pack/    # Ecosystem differentiation (7 tools)
+├── firm-auth-compliance-pack/    # OAuth/OIDC + compliance (8 tools)
+├── firm-vs-bridge-pack/          # VS Code context sync (4 tools)
+└── firm-skill-loader-pack/       # Lazy SKILL.md loading (2 tools)
 ```
 
 Install all skills at once:
@@ -245,9 +265,10 @@ Each `SKILL.md` file is directly publishable to ClawHub with the standard YAML f
 bash factory/generate-firm.sh --help
 
 Options:
-  --sector    legal|medtech|ecommerce|fintech|saas|gaming|edtech|
-              healthtech|proptech|logistics|hr|marketing|data|
-              consulting|generic  (default: generic)
+  --sector    generic|legal|medtech|ecommerce|fintech|saas|
+              manufacturing|education|realestate|logistics|
+              media|automotive|energy|hr|consulting
+              (default: generic)
   --stack     typescript|python|rust|go|java|dotnet|fullstack
               (default: typescript)
   --size      startup(4 depts) | scaleup(8 depts) | enterprise(14 depts)
@@ -292,7 +313,7 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (75 total — 19 modules)
+### Tools (115 total — 25 modules)
 
 See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for the complete tool reference.
 
@@ -316,6 +337,13 @@ See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for t
 | n8n Bridge | 2 | `n8n_bridge` |
 | Browser Audit | 1 | `browser_audit` |
 | Hebbian Memory | 8 | `hebbian_memory` |
+| A2A Bridge | 8 | `a2a_bridge` |
+| Platform Audit | 8 | `platform_audit` |
+| Ecosystem Audit | 7 | `ecosystem_audit` |
+| Spec Compliance | 7 | `spec_compliance` |
+| Prompt Security | 2 | `prompt_security` |
+| Auth Compliance | 2 | `auth_compliance` |
+| Compliance Medium | 6 | `compliance_medium` |
 | **Shared helpers** | — | `config_helpers` |
 
 ### Start / stop / status
@@ -379,10 +407,10 @@ pip install -r requirements-dev.txt
 python -m pytest tests/test_smoke.py -v
 ```
 
-**207 tests**, 100% pass — covering:
+**486 tests** (168 unit + 318 integration), covering:
 - Server starts and answers `ping`
 - `initialize` returns correct capabilities + version
-- All 75 tools registered with valid `inputSchema`
+- All 115 tools registered with valid `inputSchema`
 - `vs_context_push` degrades gracefully without Gateway
 - `firm_export_document` writes local file
 - Unknown method returns JSON-RPC error -32601

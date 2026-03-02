@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "memory-os-ai": {
+      "type": "stdio",
+      "command": "memory-os-ai",
+      "env": {
+        "MEMORY_WORKSPACE": "${workspaceFolder}",
+        "MEMORY_MODEL": "all-MiniLM-L6-v2"
+      }
+    },
+    "openclaw-extensions": {
+      "type": "http",
+      "url": "http://127.0.0.1:8012/mcp"
+    }
+  }
+}

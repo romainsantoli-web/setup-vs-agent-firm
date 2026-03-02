@@ -1,0 +1,51 @@
+# Docker Compose — Full OpenClaw Agent Stack
+# Starts both MCP servers side-by-side for E2E development/demo
+#
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f
+#   docker compose down
+
+services:
+  memory-os-ai:
+    build:
+      context: ../Memory-os-ai
+      dockerfile: Dockerfile
+    container_name: memory-os-ai
+    ports:
+      - "8765:8765"
+    environment:
+      - MEMORY_CACHE_DIR=/data
+      - MEMORY_MODEL=all-MiniLM-L6-v2
+    volumes:
+      - memory-data:/data
+      - ./workspace:/workspace:ro
+    command: ["memory-os-ai", "--sse"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8765/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  openclaw-extensions:
+    build:
+      context: ./mcp-openclaw-extensions
+      dockerfile: Dockerfile
+    container_name: openclaw-extensions
+    ports:
+      - "8012:8012"
+    env_file:
+      - ./mcp-openclaw-extensions/.env
+    environment:
+      - MCP_EXT_HOST=0.0.0.0
+      - MCP_EXT_PORT=8012
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8012/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  memory-data:
