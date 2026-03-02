@@ -89,8 +89,8 @@ echo "$VALID_SIZES"   | grep -qw "$SIZE"   || error "Taille invalide: $SIZE"
 # ── configuration selon taille ───────────────────────────────
 case "$SIZE" in
   startup)    DEPTS=("strategy" "engineering" "quality" "operations") ;;
-  scaleup)    DEPTS=("strategy" "research_development" "engineering" "quality" "marketing" "support_clients" "operations" "finance") ;;
-  enterprise) DEPTS=("strategy" "research_development" "planning_orchestration" "memory" "engineering" "quality" "operations" "support_team" "commercial" "marketing" "support_clients" "finance" "legal" "ra") ;;
+  scaleup)    DEPTS=("strategy" "research_development" "engineering" "quality" "marketing" "market_research" "support_clients" "operations" "finance") ;;
+  enterprise) DEPTS=("strategy" "research_development" "planning_orchestration" "memory" "engineering" "quality" "operations" "support_team" "commercial" "marketing" "market_research" "support_clients" "finance" "legal" "ra") ;;
 esac
 
 # ── utilitaires ──────────────────────────────────────────────
@@ -113,6 +113,7 @@ dept_label() {
     support_clients)       echo "Department Support Clients" ;;
     finance)               echo "Department Finance" ;;
     legal)                 echo "Department Legal" ;;
+    market_research)       echo "Department Market Research" ;;
     ra)                    echo "Department RA" ;;
     *) echo "Department $1" ;;
   esac
@@ -133,6 +134,7 @@ dept_services() {
     support_clients)       echo "client-support-operations|client-incident-response" ;;
     finance)               echo "fpa|pricing-strategy|billing-collections|unit-economics" ;;
     legal)                 echo "contracting|privacy-data|ip-compliance" ;;
+    market_research)       echo "competitive-analysis|market-sizing|financial-benchmark|web-research|report-generation|competitive-monitoring" ;;
     ra)                    echo "agent-recruiting|agent-onboarding|capability-development|governance-performance" ;;
     *) echo "operations" ;;
   esac
