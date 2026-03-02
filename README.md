@@ -313,7 +313,7 @@ Options:
 
 Runs on **port 8012** alongside the core mcp-openclaw server (8011).
 
-### Tools (121 total — 26 modules)
+### Tools (136 total — 29 modules)
 
 See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for the complete tool reference.
 
@@ -345,6 +345,9 @@ See [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md) for t
 | Auth Compliance | 2 | `auth_compliance` |
 | Compliance Medium | 6 | `compliance_medium` |
 | **Market Research** | **6** | **`market_research`** |
+| **Legal Status** | **5** | **`legal_status`** |
+| **Location Strategy** | **5** | **`location_strategy`** |
+| **Supplier Management** | **5** | **`supplier_management`** |
 | **Shared helpers** | — | `config_helpers` |
 
 ### Start / stop / status
@@ -370,7 +373,10 @@ souls/
 ├── firm-cto/                # Soren Hales — technical excellence
 ├── firm-legal-analyst/      # Inés Clavero — regulatory radar
 ├── firm-hr-director/        # Camille Osei — people systems
-└── firm-market-research/    # Élise Montblanc — competitive intelligence
+├── firm-market-research/    # Élise Montblanc — competitive intelligence
+├── firm-legal-status/       # Thibault Desvaux — legal status advisory
+├── firm-location/           # Gabrielle Lefèvre — location strategy
+└── firm-suppliers/          # Marc-Antoine Roussel — procurement
 ```
 
 Each SOUL.md contains: identity, core values, communication style, decision framework,

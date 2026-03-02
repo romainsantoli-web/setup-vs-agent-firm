@@ -44,7 +44,7 @@ Options:
   --stack  <name>     Stack technique (défaut: typescript)
                       Valeurs: typescript, python, java, dotnet, go, rust, mixed
   --size   <level>    Taille de la firm (défaut: startup)
-                      Valeurs: startup (4 depts), scaleup (8 depts), enterprise (all 14)
+                      Valeurs: startup (4 depts), scaleup (12 depts), enterprise (all 18)
   --output <dir>      Répertoire de sortie (défaut: .)
   --lang   <code>     Langue des agents (défaut: fr) — fr | en
   --dry-run           Affiche ce qui serait généré sans écrire
@@ -89,8 +89,8 @@ echo "$VALID_SIZES"   | grep -qw "$SIZE"   || error "Taille invalide: $SIZE"
 # ── configuration selon taille ───────────────────────────────
 case "$SIZE" in
   startup)    DEPTS=("strategy" "engineering" "quality" "operations") ;;
-  scaleup)    DEPTS=("strategy" "research_development" "engineering" "quality" "marketing" "market_research" "support_clients" "operations" "finance") ;;
-  enterprise) DEPTS=("strategy" "research_development" "planning_orchestration" "memory" "engineering" "quality" "operations" "support_team" "commercial" "marketing" "market_research" "support_clients" "finance" "legal" "ra") ;;
+  scaleup)    DEPTS=("strategy" "research_development" "engineering" "quality" "marketing" "market_research" "support_clients" "operations" "finance" "legal_status" "location_strategy" "supplier_management") ;;
+  enterprise) DEPTS=("strategy" "research_development" "planning_orchestration" "memory" "engineering" "quality" "operations" "support_team" "commercial" "marketing" "market_research" "support_clients" "finance" "legal" "ra" "legal_status" "location_strategy" "supplier_management") ;;
 esac
 
 # ── utilitaires ──────────────────────────────────────────────
@@ -114,6 +114,9 @@ dept_label() {
     finance)               echo "Department Finance" ;;
     legal)                 echo "Department Legal" ;;
     market_research)       echo "Department Market Research" ;;
+    legal_status)          echo "Department Legal Status" ;;
+    location_strategy)     echo "Department Location Strategy" ;;
+    supplier_management)   echo "Department Supplier Management" ;;
     ra)                    echo "Department RA" ;;
     *) echo "Department $1" ;;
   esac
@@ -135,6 +138,9 @@ dept_services() {
     finance)               echo "fpa|pricing-strategy|billing-collections|unit-economics" ;;
     legal)                 echo "contracting|privacy-data|ip-compliance" ;;
     market_research)       echo "competitive-analysis|market-sizing|financial-benchmark|web-research|report-generation|competitive-monitoring" ;;
+    legal_status)          echo "status-comparison|tax-simulation|social-protection|governance-audit|creation-checklist" ;;
+    location_strategy)     echo "geo-analysis|real-estate|site-scoring|incentives|location-tco" ;;
+    supplier_management)   echo "supplier-search|supplier-evaluation|supplier-tco|contract-check|risk-monitoring" ;;
     ra)                    echo "agent-recruiting|agent-onboarding|capability-development|governance-performance" ;;
     *) echo "operations" ;;
   esac
