@@ -162,12 +162,12 @@ setup-vs-agent-firm/
     │   ├── prompt_security.py       ← 2 tools prompt injection detection (H2)
     │   ├── auth_compliance.py       ← 2 tools OAuth/OIDC compliance (H4)
     │   ├── compliance_medium.py     ← 6 tools M1-M6 (deprecation, circuit breaker, GDPR, DID, routing, resources)
-    │   ├── models.py                ← 115+ modèles Pydantic + TOOL_MODELS + cross-field validators
-    │   └── main.py                  ← 25 modules, 115 tools enregistrés, v3.0.0
+    │   ├── models.py                ← 138+ modèles Pydantic + TOOL_MODELS + cross-field validators
+    │   └── main.py                  ← 29 modules, 138 tools enregistrés, v3.3.0
     └── tests/
         ├── conftest.py              ← fixtures partagées (tmp_path, mock configs)
         ├── test_smoke.py            ← 311 smoke tests
-        └── test_<module>.py (×22)   ← 173 tests unitaires per-module — 484 total
+        └── test_<module>.py (×22)   ← tests unitaires per-module — 2583 total
 ```
 
 ---
@@ -547,6 +547,51 @@ mergée dans `main` (`01aebcf`), branche nettoyée. CLAUDE.md mis à jour avec l
 **Commande de sync :** `clawhub sync --workdir /Users/romain/analyse --dir skills --no-input`
 **Publication batch :** `bash /tmp/publish_remaining_skills.sh` (3 batches de 5, pause 60 min)
 **Auth :** `romainsantoli-web` (token keyring)
+
+---
+
+### Session du 3 mars 2026 — Infrastructure hardening + zero lint (P0-P4 + continuation)
+
+**Accompli :**
+Exécution des 5 priorités identifiées (P0-P4) + continuation sur la dette technique.
+
+**P0 — Memory-os-ai PR #8 mergé** : Deep audit v3.0.0 (pickle→np.load security, O(n²)→vectorized
+cosine, coverage 56%→81%, 348 tests). Résolu conflit CI merge (matrix 3.10-3.12 + ruff + secrets-scan
++ 80% threshold). Mis à jour branch protection (`test (3.11)` au lieu de `test`).
+
+**P1 — Docker compose build + test** : Les deux images build OK, containers healthy. Fix healthcheck
+(python urllib au lieu de curl absent dans slim images, `/healthz`→`/health`). PR #6 mergée.
+
+**P2 — ClawHub skills** : 34 skills publiées (31 déjà synced + 3 nouvelles : `firm-location-pack`,
+`firm-market-research-pack`, `firm-suppliers-pack`).
+
+**P3 — Ruff lint zero errors** : mcp-openclaw 336→0 (122 F601 duplicate keys, 78 F841 unused vars,
+127 fixés précédemment, 9 manuels). Memory-os-ai 64→0 (50+13+ruff config). Parent repo already clean.
+
+**P4 — CI threshold 80%** : Géré via P0 (CI merged avec `--cov-fail-under=80`).
+
+**Continuation — Tests stale fixés** : 13 tests corrigés (EXPECTED_TOOLS 115→138, version 3.0.0→3.3.0,
+dm_allowlist+shell_env assertions). Suite complète : **2583 tests mcp-openclaw + 348 Memory-os-ai = 2931 total**.
+Ajouté aiohttp+pytest-aiohttp+websockets en deps locales.
+
+**PRs mergées cette session :**
+- Memory-os-ai #8 : deep audit v3.0.0 (squash merge)
+- Memory-os-ai #10 : ruff auto-fix 50 issues
+- Memory-os-ai #11 : zero ruff + ruff config
+- mcp-openclaw #9 : ruff auto-fix 127 issues
+- mcp-openclaw #10 : zero ruff + fix 13 stale tests
+- setup-vs-agent-firm #6 : docker-compose healthcheck fix
+
+**Décisions d'architecture :**
+- **Python urllib healthcheck** : slim Docker images n'ont pas curl — utiliser `python -c "import urllib.request; ..."` pour les healthchecks (portable, zéro dépendance)
+- **Branch protection `test (3.11)`** : matrix CI génère `test (3.10)`, `test (3.11)`, `test (3.12)` — require seulement 3.11 pour merger (couvre le lint qui ne tourne que sur 3.11)
+- **Ruff F601 removal script** : script Python AST-aware pour supprimer la première occurrence des clés dupliquées (annotations/outputSchema injectées en double dans les TOOLS dicts)
+- **`[tool.ruff.lint]` dans pyproject.toml** de Memory-os-ai : E+F rules, ignore E501, E402 allowed in tests/
+
+**État des repos :**
+- **setup-vs-agent-firm** : main synced, 0 PRs ouverts, 34 skills, docker healthy
+- **mcp-openclaw** : main synced, 0 PRs, 138 tools, 2583 tests, 0 ruff errors, v3.3.0
+- **Memory-os-ai** : main synced, 0 PRs, 348 tests, 0 ruff errors, v3.0.0
 
 ---
 
