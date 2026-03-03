@@ -8,8 +8,8 @@ Your AI agents forget everything between sessions. Firm fixes that.
 
 [![PyPI — firm-cli](https://img.shields.io/pypi/v/firm-cli?label=firm-cli&color=blue)](https://pypi.org/project/firm-cli/)
 [![PyPI — mcp-openclaw](https://img.shields.io/pypi/v/mcp-openclaw-extensions?label=mcp-openclaw&color=blue)](https://pypi.org/project/mcp-openclaw-extensions/)
-[![CI](https://github.com/romainsantoli-web/firm-ecosystem/actions/workflows/ci.yml/badge.svg)](https://github.com/romainsantoli-web/firm-ecosystem/actions/workflows/ci.yml)
-[![Docker](https://img.shields.io/badge/ghcr.io-mcp--openclaw-brightgreen)](https://ghcr.io/romainsantoli-web/mcp-openclaw-extensions)
+[![CI](https://github.com/romainsantoli-web/setup-vs-agent-firm/actions/workflows/ci.yml/badge.svg)](https://github.com/romainsantoli-web/setup-vs-agent-firm/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/badge/ghcr.io-mcp--openclaw-brightgreen)](https://ghcr.io/romainsantoli-web/mcp-openclaw)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://python.org)
 [![MCP 2025-11-25](https://img.shields.io/badge/MCP-2025--11--25-purple.svg)](https://modelcontextprotocol.io)
@@ -100,7 +100,7 @@ firm memory dashboard           # view learned patterns
 └─────────┼────────────────────────────────────────────────────┘
           │
    ┌──────▼──────────────────┐    ┌──────────────────────────┐
-   │  mcp-openclaw-extensions│    │  Memory-os-ai            │
+   │  mcp-openclaw           │    │  Memory-os-ai            │
    │  (MCP server :8012)     │◄──►│  (Hebbian memory :8765)  │
    │  138 tools / 29 modules │    │  4-layer CLAUDE.md       │
    │  A2A + security + audit │    │  cosine similarity       │
@@ -213,7 +213,7 @@ Three complete real-world setups in [examples/](examples/):
 | **Config & Migration** | 17 | Runtime audit, gateway hardening, config migration, observability, i18n |
 | **Specialized** | 8 | Agent orchestration (DAG), n8n bridge, browser audit, skill loader |
 
-Full reference: [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/README.md)
+Full reference: [mcp-openclaw README](https://github.com/romainsantoli-web/mcp-openclaw#readme)
 
 ---
 
@@ -437,8 +437,9 @@ pyramid behaviour, constraints, and sample interactions.
 ## Tests
 
 ```bash
-# MCP extensions — 2583 tests
-cd mcp-openclaw-extensions && pip install -r requirements-dev.txt
+# MCP extensions — 2583 tests (separate repo: mcp-openclaw)
+git clone https://github.com/romainsantoli-web/mcp-openclaw
+cd mcp-openclaw && pip install -r requirements-dev.txt
 python -m pytest tests/ -v --cov=src --cov-fail-under=80
 
 # firm-cli — 14 tests
@@ -456,12 +457,12 @@ python -m pytest tests/test_backends.py tests/test_sdk.py -v
 
 ## Configuration
 
-See `mcp-openclaw-extensions/.env.example` for the full list. Key variables:
+See the [mcp-openclaw .env.example](https://github.com/romainsantoli-web/mcp-openclaw#configuration) for the full list. Key variables:
 
 ```bash
 MCP_EXT_HOST=127.0.0.1          # MCP server bind address
 MCP_EXT_PORT=8012                # MCP server port
-OPENCLAW_GATEWAY_URL=ws://127.0.0.1:18789  # OpenClaw Gateway
+FIRM_GATEWAY_URL=ws://127.0.0.1:18789  # Firm Gateway
 GITHUB_TOKEN=<token>             # For delivery pipeline
 ```
 
@@ -476,8 +477,11 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 git clone https://github.com/romainsantoli-web/firm-ecosystem
 cd firm-ecosystem
 pip install -e "firm-cli[dev]"
-pip install -e "mcp-openclaw-extensions[dev]"
-python -m pytest mcp-openclaw-extensions/tests/ firm-cli/tests/ -v
+
+# MCP extensions tests (separate repo)
+git clone https://github.com/romainsantoli-web/mcp-openclaw
+pip install -e "mcp-openclaw[dev]"
+python -m pytest mcp-openclaw/tests/ firm-cli/tests/ -v
 ```
 
 ---
