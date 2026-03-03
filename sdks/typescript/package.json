@@ -1,0 +1,22 @@
+{
+  "name": "firm-sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for the Firm Ecosystem MCP server — typed client for 138 AI agent tools",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "keywords": ["mcp", "ai-agents", "firm", "sdk", "hebbian-memory", "openclaw"],
+  "author": "Romain Santoli <romainsantoli@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/romainsantoli-web/firm-ecosystem"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/test.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  },
+  "files": ["dist/index.js", "dist/index.d.ts"]
+}
