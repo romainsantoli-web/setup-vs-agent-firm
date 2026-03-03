@@ -158,7 +158,7 @@ def _memory_analyze() -> int:
             "id": 1,
             "method": "tools/call",
             "params": {
-                "name": "openclaw_hebbian_analyze",
+                "name": "firm_hebbian_analyze",
                 "arguments": {"since_days": 90},
             },
         }).encode()
