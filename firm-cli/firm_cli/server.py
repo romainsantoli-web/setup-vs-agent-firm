@@ -1,0 +1,150 @@
+"""firm start / stop / status — manage the MCP server lifecycle."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import signal
+import subprocess
+import sys
+from pathlib import Path
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+console = Console()
+
+PIDFILE_DIR = Path.home() / ".firm"
+OPENCLAW_PID = PIDFILE_DIR / "openclaw-extensions.pid"
+MEMORY_PID = PIDFILE_DIR / "memory-os-ai.pid"
+
+
+def _is_running(pidfile: Path) -> tuple[bool, int | None]:
+    """Check if a process from a pidfile is still running."""
+    if not pidfile.exists():
+        return False, None
+    try:
+        pid = int(pidfile.read_text().strip())
+        os.kill(pid, 0)  # signal 0 = check if alive
+        return True, pid
+    except (ValueError, ProcessLookupError, PermissionError):
+        pidfile.unlink(missing_ok=True)
+        return False, None
+
+
+def _health_check(url: str) -> dict | None:
+    """Quick HTTP health check."""
+    try:
+        import urllib.request
+        with urllib.request.urlopen(url, timeout=3) as resp:
+            return json.loads(resp.read())
+    except Exception:
+        return None
+
+
+def run_start(args: argparse.Namespace) -> int:
+    """Start MCP servers."""
+    PIDFILE_DIR.mkdir(parents=True, exist_ok=True)
+    console.print(Panel("[bold cyan]firm start[/bold cyan]", border_style="cyan"))
+
+    # Check if mcp-openclaw-extensions is installed
+    try:
+        import src.main  # noqa: F401
+        console.print("  [green]✓[/green] mcp-openclaw-extensions found")
+    except ImportError:
+        console.print("  [yellow]![/yellow] mcp-openclaw-extensions not installed")
+        console.print("    Install: [bold]pip install mcp-openclaw-extensions[/bold]")
+
+    # Start openclaw-extensions
+    alive, pid = _is_running(OPENCLAW_PID)
+    if alive:
+        console.print(f"  [dim]openclaw-extensions already running (PID {pid})[/dim]")
+    else:
+        try:
+            proc = subprocess.Popen(
+                [sys.executable, "-m", "src.main"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+            OPENCLAW_PID.write_text(str(proc.pid))
+            console.print(f"  [green]✓[/green] openclaw-extensions started (PID {proc.pid})")
+        except Exception as e:
+            console.print(f"  [red]✗[/red] Failed to start openclaw-extensions: {e}")
+
+    # Start memory-os-ai
+    alive, pid = _is_running(MEMORY_PID)
+    if alive:
+        console.print(f"  [dim]memory-os-ai already running (PID {pid})[/dim]")
+    else:
+        try:
+            proc = subprocess.Popen(
+                ["memory-os-ai", "--sse"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+            MEMORY_PID.write_text(str(proc.pid))
+            console.print(f"  [green]✓[/green] memory-os-ai started (PID {proc.pid})")
+        except FileNotFoundError:
+            console.print("  [yellow]![/yellow] memory-os-ai not installed")
+            console.print("    Install: [bold]pip install memory-os-ai[/bold]")
+        except Exception as e:
+            console.print(f"  [red]✗[/red] Failed to start memory-os-ai: {e}")
+
+    return 0
+
+
+def run_stop() -> int:
+    """Stop MCP servers."""
+    console.print(Panel("[bold cyan]firm stop[/bold cyan]", border_style="cyan"))
+    for name, pidfile in [("openclaw-extensions", OPENCLAW_PID), ("memory-os-ai", MEMORY_PID)]:
+        alive, pid = _is_running(pidfile)
+        if alive and pid:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                pidfile.unlink(missing_ok=True)
+                console.print(f"  [green]✓[/green] {name} stopped (PID {pid})")
+            except Exception as e:
+                console.print(f"  [red]✗[/red] Failed to stop {name}: {e}")
+        else:
+            console.print(f"  [dim]{name} not running[/dim]")
+    return 0
+
+
+def run_status() -> int:
+    """Show ecosystem status."""
+    table = Table(title="Firm Ecosystem Status", border_style="cyan")
+    table.add_column("Component", style="bold")
+    table.add_column("Status")
+    table.add_column("PID")
+    table.add_column("Endpoint")
+    table.add_column("Details")
+
+    # openclaw-extensions
+    alive, pid = _is_running(OPENCLAW_PID)
+    health = _health_check("http://127.0.0.1:8012/health") if alive else None
+    if health:
+        tools = health.get("tools", "?")
+        version = health.get("version", "?")
+        table.add_row("mcp-openclaw-extensions", "[green]● running[/green]", str(pid), "http://127.0.0.1:8012", f"{tools} tools, v{version}")
+    elif alive:
+        table.add_row("mcp-openclaw-extensions", "[yellow]● starting[/yellow]", str(pid), "http://127.0.0.1:8012", "")
+    else:
+        table.add_row("mcp-openclaw-extensions", "[red]● stopped[/red]", "-", "-", "firm start")
+
+    # memory-os-ai
+    alive2, pid2 = _is_running(MEMORY_PID)
+    health2 = _health_check("http://127.0.0.1:8765/health") if alive2 else None
+    if health2:
+        tools2 = health2.get("tools", "?")
+        table.add_row("memory-os-ai", "[green]● running[/green]", str(pid2), "http://127.0.0.1:8765", f"{tools2} tools")
+    elif alive2:
+        table.add_row("memory-os-ai", "[yellow]● starting[/yellow]", str(pid2), "http://127.0.0.1:8765", "")
+    else:
+        table.add_row("memory-os-ai", "[red]● stopped[/red]", "-", "-", "pip install memory-os-ai")
+
+    console.print(table)
+    return 0
