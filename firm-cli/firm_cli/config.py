@@ -14,7 +14,6 @@ import json
 from pathlib import Path
 
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
 console = Console()
@@ -110,7 +109,7 @@ def _config_set(key: str, value: str) -> int:
             info = RECOMMENDED_MODELS[value]
             console.print(f"    [dim]{info['note']}[/dim]")
         else:
-            console.print(f"    [yellow]Custom model. Run `firm config models` for recommended options.[/yellow]")
+            console.print("    [yellow]Custom model. Run `firm config models` for recommended options.[/yellow]")
         console.print("    [dim]Restart servers for changes to take effect: firm stop && firm start[/dim]")
     return 0
 

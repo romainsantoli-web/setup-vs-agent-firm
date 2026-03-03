@@ -1,4 +1,4 @@
-name: OpenClaw AI Review
+name: Firm AI Review
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  openclaw-review:
+  firm-review:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -25,45 +25,42 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ── 2. Diff ────────────────────────────────────────────────────────────
+      # ── 2. Collect diff ────────────────────────────────────────────────────
       - name: Collect diff
         id: diff
         run: |
           git diff origin/${{ github.base_ref }}...HEAD \
-            --diff-filter=ACMR \
-            --stat \
-            > diff_stat.txt
+            --diff-filter=ACMR --stat > diff_stat.txt
           git diff origin/${{ github.base_ref }}...HEAD \
             --diff-filter=ACMR \
             -- '*.py' '*.ts' '*.js' '*.sh' '*.md' '*.yaml' '*.yml' \
-            | head -c 32000 \
-            > diff_patch.txt
+            | head -c 32000 > diff_patch.txt
           echo "stat<<EOF" >> "$GITHUB_OUTPUT"
           cat diff_stat.txt >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-      # ── 3. Python + MCP server ─────────────────────────────────────────────
+      # ── 3. Python + MCP server (cloned from separate repo) ─────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
-      - name: Install mcp-openclaw-extensions
-        working-directory: mcp-openclaw-extensions
-        run: pip install -r requirements.txt
+      - name: Clone and install mcp-openclaw
+        run: |
+          git clone --depth 1 https://github.com/romainsantoli-web/mcp-openclaw.git mcp-openclaw-extensions
+          pip install -r mcp-openclaw-extensions/requirements.txt
 
-      - name: Start mcp-openclaw-extensions
-        working-directory: mcp-openclaw-extensions
+      - name: Start MCP server
         env:
-          OPENCLAW_GATEWAY_URL: ${{ secrets.OPENCLAW_GATEWAY_URL }}
+          FIRM_GATEWAY_URL: ${{ secrets.OPENCLAW_GATEWAY_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MCP_EXT_HOST: ${{ env.MCP_EXT_HOST }}
           MCP_EXT_PORT: ${{ env.MCP_EXT_PORT }}
+        working-directory: mcp-openclaw-extensions
         run: |
           nohup python -m src.main > /tmp/mcp_ext.log 2>&1 &
           echo $! > /tmp/mcp_ext.pid
-          # Wait for readiness (max 30s)
           for i in $(seq 1 30); do
             if curl -sf -X POST http://$MCP_EXT_HOST:$MCP_EXT_PORT/mcp \
                 -H "Content-Type: application/json" \
@@ -74,22 +71,27 @@ jobs:
             sleep 1
           done
 
-      # ── 4. OpenClaw Quality review ─────────────────────────────────────────
-      - name: OpenClaw Quality department review
+      # ── 4. Quality review via MCP ──────────────────────────────────────────
+      - name: Firm Quality department review
         id: review
         env:
-          OPENCLAW_GATEWAY_URL: ${{ secrets.OPENCLAW_GATEWAY_URL }}
+          FIRM_GATEWAY_URL: ${{ secrets.OPENCLAW_GATEWAY_URL }}
           MCP_EXT_HOST: ${{ env.MCP_EXT_HOST }}
           MCP_EXT_PORT: ${{ env.MCP_EXT_PORT }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          python - <<'PYEOF'
+          python3 - <<'PYEOF'
           import asyncio, httpx, json, os, sys, pathlib
 
           MCP = f"http://{os.environ['MCP_EXT_HOST']}:{os.environ['MCP_EXT_PORT']}/mcp"
           PR_TITLE  = os.environ.get("PR_TITLE", "")
           PR_BODY   = os.environ.get("PR_BODY", "")
           DIFF_STAT = pathlib.Path("diff_stat.txt").read_text(errors="replace")[:2000]
-          DIFF_PATCH= pathlib.Path("diff_patch.txt").read_text(errors="replace")
+          DIFF_PATCH = pathlib.Path("diff_patch.txt").read_text(errors="replace")
 
           QUALITY_PROMPT = f"""
           You are the Quality department (QA Lead + Code Reviewer + Security Auditor) of a
@@ -125,11 +127,8 @@ jobs:
 
           async def run():
               async with httpx.AsyncClient(timeout=120) as client:
-                  # Call firm_export_document to store the prompt
                   resp = await client.post(MCP, json={
-                      "jsonrpc": "2.0",
-                      "id": 1,
-                      "method": "tools/call",
+                      "jsonrpc": "2.0", "id": 1, "method": "tools/call",
                       "params": {
                           "name": "firm_export_document",
                           "arguments": {
@@ -148,17 +147,14 @@ jobs:
                   result = data.get("result", {})
                   doc_path = result.get("path", "")
 
-                  # If OpenClaw Gateway is configured, send to Quality agent
-                  gw = os.environ.get("OPENCLAW_GATEWAY_URL", "")
+                  gw = os.environ.get("FIRM_GATEWAY_URL", "")
                   review_result = ""
                   if gw:
                       try:
                           import websockets
                           async with websockets.connect(gw, open_timeout=10) as ws:
                               await ws.send(json.dumps({
-                                  "jsonrpc": "2.0",
-                                  "id": 2,
-                                  "method": "agent.send",
+                                  "jsonrpc": "2.0", "id": 2, "method": "agent.send",
                                   "params": {
                                       "agent": "quality-lead",
                                       "message": QUALITY_PROMPT,
@@ -170,13 +166,13 @@ jobs:
                               review_result = resp_ws.get("result", {}).get("content", "")
                       except Exception as e:
                           review_result = (
-                              f"_OpenClaw Gateway unavailable ({e}). "
+                              f"_Firm Gateway unavailable ({e}). "
                               f"Static review prompt saved to `{doc_path}`._\n\n"
                               f"**Diff statistics:**\n```\n{DIFF_STAT}\n```"
                           )
                   else:
                       review_result = (
-                          f"_OPENCLAW_GATEWAY_URL not configured. "
+                          f"_FIRM_GATEWAY_URL not configured. "
                           f"Review prompt saved to `{doc_path}`._\n\n"
                           f"**Diff statistics:**\n```\n{DIFF_STAT}\n```"
                       )
@@ -186,12 +182,6 @@ jobs:
 
           asyncio.run(run())
           PYEOF
-        env:
-          PR_TITLE:  ${{ github.event.pull_request.title }}
-          PR_BODY:   ${{ github.event.pull_request.body }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_SHA:    ${{ github.event.pull_request.head.sha }}
-          BASE_REF:  ${{ github.base_ref }}
 
       # ── 5. Post PR comment ─────────────────────────────────────────────────
       - name: Post review comment
@@ -205,18 +195,17 @@ jobs:
             try {
               body = fs.readFileSync('review_result.md', 'utf8');
             } catch {
-              body = '_OpenClaw review did not produce output. Check CI logs._';
+              body = '_Firm review did not produce output. Check CI logs._';
             }
 
-            const header = `## 🤖 OpenClaw Quality Review\n\n` +
+            const header = `## 🧠 Firm Quality Review\n\n` +
               `> **AI-generated review** — requires human validation before merge.\n\n`;
 
-            const footer = `\n\n---\n_Generated by [mcp-openclaw-extensions](./mcp-openclaw-extensions) · ` +
+            const footer = `\n\n---\n_Generated by [firm-mcp-server](https://github.com/romainsantoli-web/mcp-openclaw) · ` +
               `Commit \`${{ github.event.pull_request.head.sha }}\`_`;
 
             const fullBody = header + body + footer;
 
-            // Find existing bot comment and update, or create new
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -224,7 +213,7 @@ jobs:
             });
 
             const existing = comments.data.find(c =>
-              c.user.type === 'Bot' && c.body.includes('OpenClaw Quality Review')
+              c.user.type === 'Bot' && c.body.includes('Firm Quality Review')
             );
 
             if (existing) {
@@ -244,7 +233,7 @@ jobs:
             }
 
       # ── 6. Stop MCP server ─────────────────────────────────────────────────
-      - name: Stop mcp-openclaw-extensions
+      - name: Stop MCP server
         if: always()
         run: |
           [[ -f /tmp/mcp_ext.pid ]] && kill $(cat /tmp/mcp_ext.pid) 2>/dev/null || true

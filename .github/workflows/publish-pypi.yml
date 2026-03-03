@@ -1,4 +1,6 @@
-# Publish mcp-openclaw-extensions to PyPI on release tag
+# Publish firm-cli to PyPI on release tag
+# Note: mcp-openclaw-extensions is published from its own repo
+# (https://github.com/romainsantoli-web/mcp-openclaw)
 name: Publish to PyPI
 
 on:
@@ -11,35 +13,11 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write  # trusted publishing
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install build tools
-        run: pip install build
-
-      - name: Build mcp-openclaw-extensions
-        working-directory: mcp-openclaw-extensions
-        run: python -m build
-
-      - name: Publish mcp-openclaw-extensions
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: mcp-openclaw-extensions/dist/
-
   publish-cli:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write
+      id-token: write  # trusted publishing
     steps:
       - uses: actions/checkout@v4
 

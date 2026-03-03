@@ -5,20 +5,14 @@
 
 from __future__ import annotations
 
-import json
-import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 
 from firm_cli.config import (
-    CONFIG_FILE,
     DEFAULTS,
     RECOMMENDED_MODELS,
     _config_models,
     _config_set,
-    _config_show,
     _load_config,
     _save_config,
     run_config,

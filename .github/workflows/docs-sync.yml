@@ -6,7 +6,6 @@ on:
   push:
     branches: [main]
     paths:
-      - "mcp-openclaw-extensions/src/**"
       - "firm-cli/firm_cli/**"
       - "scripts/generate-tool-docs.py"
   schedule:
@@ -27,8 +26,9 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Clone mcp-openclaw and install deps
         run: |
+          git clone --depth 1 https://github.com/romainsantoli-web/mcp-openclaw.git mcp-openclaw-extensions
           pip install -r mcp-openclaw-extensions/requirements.txt
           pip install -e firm-cli
 
@@ -39,17 +39,18 @@ jobs:
         run: |
           mkdir -p docs/repos
 
-          # mcp-openclaw-extensions
-          curl -sL "https://raw.githubusercontent.com/romainsantoli-web/mcp-openclaw-extensions/main/README.md" \
-            -o docs/repos/mcp-openclaw-extensions.md 2>/dev/null || echo "# mcp-openclaw-extensions\n\n> Could not fetch README." > docs/repos/mcp-openclaw-extensions.md
+          # mcp-openclaw (was mcp-openclaw-extensions)
+          curl -sL "https://raw.githubusercontent.com/romainsantoli-web/mcp-openclaw/main/README.md" \
+            -o docs/repos/mcp-openclaw-extensions.md 2>/dev/null \
+            || echo "# mcp-openclaw\n\n> Could not fetch README." > docs/repos/mcp-openclaw-extensions.md
 
           # Memory-os-ai
           curl -sL "https://raw.githubusercontent.com/romainsantoli-web/Memory-os-ai/main/README.md" \
-            -o docs/repos/memory-os-ai.md 2>/dev/null || echo "# Memory-os-ai\n\n> Could not fetch README." > docs/repos/memory-os-ai.md
+            -o docs/repos/memory-os-ai.md 2>/dev/null \
+            || echo "# Memory-os-ai\n\n> Could not fetch README." > docs/repos/memory-os-ai.md
 
-          # setup-vs-agent-firm (parent repo)
-          curl -sL "https://raw.githubusercontent.com/romainsantoli-web/setup-vs-agent-firm/main/README.md" \
-            -o docs/repos/setup-vs-agent-firm.md 2>/dev/null || echo "# setup-vs-agent-firm\n\n> Could not fetch README." > docs/repos/setup-vs-agent-firm.md
+          # setup-vs-agent-firm (this repo)
+          cp README.md docs/repos/setup-vs-agent-firm.md
 
       - name: Generate ecosystem stats
         run: |
@@ -59,19 +60,16 @@ jobs:
           stats = {
               "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
               "repos": {
-                  "mcp-openclaw-extensions": {"synced": pathlib.Path("docs/repos/mcp-openclaw-extensions.md").exists()},
-                  "memory-os-ai":            {"synced": pathlib.Path("docs/repos/memory-os-ai.md").exists()},
-                  "setup-vs-agent-firm":     {"synced": pathlib.Path("docs/repos/setup-vs-agent-firm.md").exists()},
+                  "mcp-openclaw":        {"synced": pathlib.Path("docs/repos/mcp-openclaw-extensions.md").exists()},
+                  "memory-os-ai":        {"synced": pathlib.Path("docs/repos/memory-os-ai.md").exists()},
+                  "setup-vs-agent-firm": {"synced": pathlib.Path("docs/repos/setup-vs-agent-firm.md").exists()},
               },
           }
-          # Count tools from generated docs
           tool_ref = pathlib.Path("docs/tool-reference.md")
           if tool_ref.exists():
               text = tool_ref.read_text()
-              tools_count = text.count("### `")
-              stats["tools_count"] = tools_count
+              stats["tools_count"] = text.count("### `")
 
-          # Count skills
           skills_dir = pathlib.Path("skills")
           if skills_dir.exists():
               stats["skills_count"] = len([d for d in skills_dir.iterdir() if d.is_dir()])
