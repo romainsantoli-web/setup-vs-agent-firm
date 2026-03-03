@@ -1,0 +1,67 @@
+# CI — run tests on every PR and push to main
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-extensions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: mcp-openclaw-extensions
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Lint
+        working-directory: mcp-openclaw-extensions
+        run: ruff check src/ tests/
+
+      - name: Test with coverage
+        working-directory: mcp-openclaw-extensions
+        run: |
+          python -m pytest tests/ -v \
+            --cov=src --cov-report=term-missing \
+            --cov-fail-under=80
+
+  test-cli:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install firm-cli
+        working-directory: firm-cli
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        working-directory: firm-cli
+        run: ruff check firm_cli/ tests/
+
+      - name: Test
+        working-directory: firm-cli
+        run: python -m pytest tests/ -v

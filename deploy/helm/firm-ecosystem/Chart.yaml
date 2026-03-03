@@ -1,0 +1,20 @@
+apiVersion: v2
+name: firm-ecosystem
+description: Helm chart for deploying the Firm Ecosystem (MCP server + Hebbian memory)
+type: application
+version: 1.0.0
+appVersion: "3.3.0"
+keywords:
+  - mcp
+  - ai-agents
+  - hebbian-memory
+  - openclaw
+  - firm
+home: https://github.com/romainsantoli-web/firm-ecosystem
+sources:
+  - https://github.com/romainsantoli-web/setup-vs-agent-firm
+  - https://github.com/romainsantoli-web/mcp-openclaw-extensions
+  - https://github.com/romainsantoli-web/Memory-os-ai
+maintainers:
+  - name: Romain Santoli
+    email: romainsantoli@gmail.com

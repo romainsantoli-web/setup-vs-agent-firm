@@ -1,0 +1,117 @@
+# Default values for firm-ecosystem
+# Override these in your values.yaml or with --set flags
+
+# ── MCP OpenClaw Extensions ──────────────────────────────────
+mcpServer:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/romainsantoli-web/mcp-openclaw-extensions
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 8012
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    LOG_LEVEL: "INFO"
+    TOOL_TIMEOUT_S: "120"
+  # Optional: MCP auth token (use a Secret in production)
+  # authToken: ""
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8012
+    initialDelaySeconds: 10
+    periodSeconds: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8012
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+# ── Memory-os-ai ─────────────────────────────────────────────
+memoryServer:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/romainsantoli-web/memory-os-ai
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 8765
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    MEMORY_BACKEND: "sqlite"
+    # MEMORY_DB_PATH: "/data/memory.db"
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8765
+    initialDelaySeconds: 10
+    periodSeconds: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8765
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+# ── Shared settings ──────────────────────────────────────────
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  # For external access, change to LoadBalancer or use Ingress
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: firm.local
+      paths:
+        - path: /mcp
+          pathType: Prefix
+          service: mcp
+        - path: /memory
+          pathType: Prefix
+          service: memory
+  tls: []
+    # - secretName: firm-tls
+    #   hosts:
+    #     - firm.local
+
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 1Gi
+  accessModes:
+    - ReadWriteOnce
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8012"
+  prometheus.io/path: "/metrics"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

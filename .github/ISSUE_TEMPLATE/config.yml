@@ -1,0 +1,9 @@
+# Configuration for GitHub Issue Templates
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/romainsantoli-web/firm-ecosystem/tree/main/docs
+    about: Read the docs before opening an issue
+  - name: Examples
+    url: https://github.com/romainsantoli-web/firm-ecosystem/tree/main/examples
+    about: Browse example projects
