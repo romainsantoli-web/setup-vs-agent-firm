@@ -211,6 +211,7 @@ class FirmGenerator:
         self._gen_departments()
         self._gen_prompt()
         self._gen_vscode_settings()
+        self._gen_vscode_mcp()
         self._gen_agents_md()
         self._gen_claude_md()
         self._gen_contributing()
@@ -437,6 +438,23 @@ You are the `Firm CEO` of this {self.sector} firm.
         }
         self._write_file(".vscode/settings.json", json.dumps(settings, indent=2) + "\n")
 
+    def _gen_vscode_mcp(self) -> None:
+        """Generate .vscode/mcp.json for VS Code Copilot MCP integration."""
+        import json
+        mcp_config = {
+            "servers": {
+                "firm-openclaw": {
+                    "type": "sse",
+                    "url": "http://127.0.0.1:8012/sse",
+                },
+                "firm-memory": {
+                    "type": "sse",
+                    "url": "http://127.0.0.1:8765/sse",
+                },
+            }
+        }
+        self._write_file(".vscode/mcp.json", json.dumps(mcp_config, indent=2) + "\n")
+
     # ── AGENTS.md ────────────────────────────────────────────
 
     def _gen_agents_md(self) -> None:
@@ -573,15 +591,17 @@ echo 'Skills installed.'
     # ── MCP config ───────────────────────────────────────────
 
     def _gen_mcp_config(self) -> None:
+        """Generate mcp-config.json for Claude Code / other MCP clients."""
         import json
         config = {
             "mcpServers": {
-                "openclaw-extensions": {
+                "firm-openclaw": {
                     "url": "http://127.0.0.1:8012/mcp",
+                    "transport": "http-streamable",
                 },
-                "memory-os-ai": {
-                    "command": "memory-os-ai",
-                    "args": [],
+                "firm-memory": {
+                    "url": "http://127.0.0.1:8765/sse",
+                    "transport": "sse",
                 },
             }
         }
