@@ -75,6 +75,11 @@ def _build_parser() -> argparse.ArgumentParser:
     mem_sub = p_mem.add_subparsers(dest="memory_command")
     mem_sub.add_parser("status", help="Show memory dashboard (weights, drift, sessions)")
     mem_sub.add_parser("analyze", help="Run Hebbian analysis (clustering + weight update)")
+    p_mem_export = mem_sub.add_parser("export", help="Export memory to a portable JSON file")
+    p_mem_export.add_argument("--output", "-o", default="firm-memory-export.json", help="Output file")
+    p_mem_import = mem_sub.add_parser("import", help="Import memory from a JSON export file")
+    p_mem_import.add_argument("source", help="Path to the export file")
+    p_mem_import.add_argument("--merge", action="store_true", help="Merge rules instead of replacing")
 
     # ── firm config ──────────────────────────────────────────
     p_cfg = sub.add_parser("config", help="Manage firm configuration")
