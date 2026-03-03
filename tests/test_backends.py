@@ -29,6 +29,8 @@ def test_list_backends():
     assert "sqlite" in names
     assert "redis" in names
     assert "postgres" in names
+    assert "chroma" in names
+    assert "chromadb" in names
 
 
 def test_get_backend_sqlite(tmp_path):
@@ -209,3 +211,112 @@ def test_special_chars_in_key(backend):
     backend.store("key with spaces", {"x": 2})
     assert backend.get("key/with/slashes").data["x"] == 1
     assert backend.get("key with spaces").data["x"] == 2
+
+
+# ── ChromaDB Backend tests ──────────────────────────────────────────────────
+
+
+_HAS_CHROMADB = False
+try:
+    import chromadb
+    _HAS_CHROMADB = True
+except ImportError:
+    pass
+
+
+@pytest.fixture
+def chroma_backend(tmp_path):
+    if not _HAS_CHROMADB:
+        pytest.skip("chromadb not installed")
+    from integrations.memory_backends import ChromaBackend
+    return ChromaBackend(path=str(tmp_path / "chroma_test"), collection="test_coll")
+
+
+@pytest.mark.skipif(not _HAS_CHROMADB, reason="chromadb not installed")
+class TestChromaBackend:
+    def test_store_and_get(self, chroma_backend):
+        chroma_backend.store("k1", {"text": "Hello world", "weight": 0.8})
+        record = chroma_backend.get("k1")
+        assert record is not None
+        assert record.key == "k1"
+        assert record.data["text"] == "Hello world"
+        assert record.data["weight"] == 0.8
+
+    def test_get_nonexistent(self, chroma_backend):
+        assert chroma_backend.get("nonexistent") is None
+
+    def test_upsert(self, chroma_backend):
+        chroma_backend.store("k1", {"v": 1})
+        chroma_backend.store("k1", {"v": 2})
+        record = chroma_backend.get("k1")
+        assert record.data["v"] == 2
+
+    def test_metadata(self, chroma_backend):
+        chroma_backend.store("k1", {"text": "test"}, metadata={"source": "unit"})
+        record = chroma_backend.get("k1")
+        assert record.metadata.get("source") == "unit"
+
+    def test_search(self, chroma_backend):
+        chroma_backend.store("rule-1", {"text": "Always run pytest"})
+        chroma_backend.store("rule-2", {"text": "Use Pydantic for validation"})
+        results = chroma_backend.search("pytest testing", limit=5)
+        assert len(results) >= 1
+        # ChromaDB does semantic search, so results may vary
+
+    def test_delete(self, chroma_backend):
+        chroma_backend.store("k1", {"text": "temp"})
+        assert chroma_backend.delete("k1") is True
+        assert chroma_backend.get("k1") is None
+
+    def test_delete_nonexistent(self, chroma_backend):
+        assert chroma_backend.delete("nope") is False
+
+    def test_list_keys(self, chroma_backend):
+        chroma_backend.store("alpha-1", {"x": 1})
+        chroma_backend.store("alpha-2", {"x": 2})
+        chroma_backend.store("beta-1", {"x": 3})
+        all_keys = chroma_backend.list_keys()
+        assert sorted(all_keys) == ["alpha-1", "alpha-2", "beta-1"]
+        alpha_keys = chroma_backend.list_keys(prefix="alpha")
+        assert sorted(alpha_keys) == ["alpha-1", "alpha-2"]
+
+    def test_count(self, chroma_backend):
+        assert chroma_backend.count() == 0
+        chroma_backend.store("a", {"x": 1})
+        chroma_backend.store("b", {"x": 2})
+        assert chroma_backend.count() == 2
+
+    def test_clear(self, chroma_backend):
+        chroma_backend.store("a", {"x": 1})
+        chroma_backend.store("b", {"x": 2})
+        deleted = chroma_backend.clear()
+        assert deleted == 2
+        assert chroma_backend.count() == 0
+
+    def test_health(self, chroma_backend):
+        h = chroma_backend.health()
+        assert h["ok"] is True
+        assert h["backend"] == "ChromaBackend"
+        assert "path" in h
+        assert "collection" in h
+
+    def test_unicode(self, chroma_backend):
+        chroma_backend.store("uni", {"text": "mémoire hebbienne 🧠 日本語"})
+        record = chroma_backend.get("uni")
+        assert "🧠" in record.data["text"]
+
+
+def test_get_backend_chroma(tmp_path):
+    if not _HAS_CHROMADB:
+        pytest.skip("chromadb not installed")
+    backend = get_backend("chroma", path=str(tmp_path / "chroma_test"))
+    from integrations.memory_backends import ChromaBackend
+    assert isinstance(backend, ChromaBackend)
+
+
+def test_get_backend_chromadb_alias(tmp_path):
+    if not _HAS_CHROMADB:
+        pytest.skip("chromadb not installed")
+    backend = get_backend("chromadb", path=str(tmp_path / "chroma_test"))
+    from integrations.memory_backends import ChromaBackend
+    assert isinstance(backend, ChromaBackend)

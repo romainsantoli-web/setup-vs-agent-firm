@@ -68,7 +68,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("stop", help="Stop the MCP servers")
 
     # ── firm status ──────────────────────────────────────────
-    sub.add_parser("status", help="Show status of all ecosystem components")
+    p_status = sub.add_parser("status", help="Show status of all ecosystem components")
+    p_status.add_argument("--watch", "-w", action="store_true", help="Live refresh every 5 seconds")
+    p_status.add_argument("--interval", type=int, default=5, help="Refresh interval in seconds (default: 5)")
 
     # ── firm memory ──────────────────────────────────────────
     p_mem = sub.add_parser("memory", help="Manage inter-session Hebbian memory")
@@ -88,6 +90,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p_cfg_set.add_argument("key", help="Config key (e.g. memory.backend)")
     p_cfg_set.add_argument("value", help="Config value (e.g. sqlite)")
     cfg_sub.add_parser("show", help="Show current configuration")
+    cfg_sub.add_parser("models", help="List recommended embedding models for Hebbian memory")
 
     return parser
 
@@ -115,7 +118,10 @@ def cli(argv: list[str] | None = None) -> int:
 
     if args.command == "status":
         from firm_cli.server import run_status
-        return run_status()
+        return run_status(
+            watch=getattr(args, "watch", False),
+            interval=getattr(args, "interval", 5),
+        )
 
     if args.command == "memory":
         from firm_cli.memory import run_memory

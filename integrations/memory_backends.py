@@ -343,6 +343,127 @@ class PostgresBackend(MemoryBackend):
             return count
 
 
+# ── ChromaDB Backend ─────────────────────────────────────────────────────────
+
+class ChromaBackend(MemoryBackend):
+    """ChromaDB-based memory backend with native vector search.
+
+    Requires: pip install chromadb
+
+    ChromaDB provides built-in embedding and semantic search, making it ideal
+    for memory retrieval where meaning matters more than exact text matching.
+    """
+
+    def __init__(
+        self,
+        path: str = "./firm-chroma-db",
+        collection: str = "firm_memory",
+        embedding_model: str | None = None,
+    ):
+        try:
+            import chromadb
+        except ImportError:
+            raise ImportError("ChromaDB backend requires: pip install chromadb")
+        self._path = path
+        self._collection_name = collection
+        self._client = chromadb.PersistentClient(path=path)
+        # Use default embedding (all-MiniLM-L6-v2) or custom
+        kwargs: dict[str, Any] = {"name": collection}
+        if embedding_model:
+            from chromadb.utils import embedding_functions
+            kwargs["embedding_function"] = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=embedding_model,
+            )
+        self._collection = self._client.get_or_create_collection(**kwargs)
+
+    def store(self, key: str, data: dict[str, Any], metadata: dict[str, Any] | None = None) -> None:
+        now = time.time()
+        doc_text = json.dumps(data, ensure_ascii=False)
+        meta = {
+            **(metadata or {}),
+            "_created_at": now,
+            "_updated_at": now,
+        }
+        # ChromaDB upsert handles create or update
+        self._collection.upsert(
+            ids=[key],
+            documents=[doc_text],
+            metadatas=[meta],
+        )
+
+    def get(self, key: str) -> MemoryRecord | None:
+        results = self._collection.get(ids=[key], include=["documents", "metadatas"])
+        if not results["ids"]:
+            return None
+        doc = results["documents"][0]
+        meta = results["metadatas"][0] or {}
+        created_at = meta.pop("_created_at", 0)
+        updated_at = meta.pop("_updated_at", 0)
+        return MemoryRecord(
+            key=key,
+            data=json.loads(doc) if doc else {},
+            metadata=meta,
+            created_at=float(created_at),
+            updated_at=float(updated_at),
+        )
+
+    def search(self, query: str, limit: int = 10) -> list[MemoryRecord]:
+        results = self._collection.query(
+            query_texts=[query],
+            n_results=min(limit, self._collection.count() or 1),
+            include=["documents", "metadatas", "distances"],
+        )
+        records = []
+        for i, key in enumerate(results["ids"][0]):
+            doc = results["documents"][0][i]
+            meta = dict(results["metadatas"][0][i] or {})
+            created_at = meta.pop("_created_at", 0)
+            updated_at = meta.pop("_updated_at", 0)
+            if results.get("distances"):
+                meta["_distance"] = results["distances"][0][i]
+            records.append(MemoryRecord(
+                key=key,
+                data=json.loads(doc) if doc else {},
+                metadata=meta,
+                created_at=float(created_at),
+                updated_at=float(updated_at),
+            ))
+        return records
+
+    def delete(self, key: str) -> bool:
+        try:
+            existing = self._collection.get(ids=[key])
+            if not existing["ids"]:
+                return False
+            self._collection.delete(ids=[key])
+            return True
+        except Exception:
+            return False
+
+    def list_keys(self, prefix: str = "") -> list[str]:
+        all_ids = self._collection.get(include=[])["ids"]
+        if prefix:
+            return sorted(k for k in all_ids if k.startswith(prefix))
+        return sorted(all_ids)
+
+    def count(self) -> int:
+        return self._collection.count()
+
+    def clear(self) -> int:
+        count = self._collection.count()
+        if count > 0:
+            all_ids = self._collection.get(include=[])["ids"]
+            if all_ids:
+                self._collection.delete(ids=all_ids)
+        return count
+
+    def health(self) -> dict[str, Any]:
+        base = super().health()
+        base["path"] = self._path
+        base["collection"] = self._collection_name
+        return base
+
+
 # ── Factory ──────────────────────────────────────────────────────────────────
 
 _BACKENDS: dict[str, type[MemoryBackend]] = {
@@ -350,6 +471,8 @@ _BACKENDS: dict[str, type[MemoryBackend]] = {
     "redis": RedisBackend,
     "postgres": PostgresBackend,
     "postgresql": PostgresBackend,
+    "chroma": ChromaBackend,
+    "chromadb": ChromaBackend,
 }
 
 
@@ -357,7 +480,7 @@ def get_backend(name: str = "sqlite", **kwargs: Any) -> MemoryBackend:
     """Factory function to create a memory backend by name.
 
     Args:
-        name: Backend name (sqlite, redis, postgres)
+        name: Backend name (sqlite, redis, postgres, chroma)
         **kwargs: Backend-specific arguments (path, url, dsn, etc.)
 
     Returns:
