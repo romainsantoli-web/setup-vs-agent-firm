@@ -18,3 +18,4 @@ __pycache__/
 *.pid
 .mcp_ext.pid
 .mcp_ext.log
+firm-cli/dist/

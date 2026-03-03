@@ -145,23 +145,51 @@ def run_start(args: argparse.Namespace) -> int:
     return _run_start_unified()
 
 
+def _auto_install(package: str) -> bool:
+    """Prompt the user and auto-install a missing pip package. Returns True on success."""
+    try:
+        answer = console.input(
+            f"  [yellow]?[/yellow] {package} not found. Install now? [bold][Y/n][/bold] "
+        ).strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        answer = "n"
+    if answer in ("", "y", "yes"):
+        console.print(f"  [dim]Installing {package}…[/dim]")
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", package],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            console.print(f"  [green]✓[/green] {package} installed")
+            return True
+        console.print(f"  [red]✗[/red] pip install failed: {result.stderr.strip()[:200]}")
+    else:
+        console.print(f"  [dim]Skipped {package}[/dim]")
+    return False
+
+
+def _ensure_package(import_name: str, pip_name: str) -> bool:
+    """Check if a package is importable; auto-install if missing. Returns True if available."""
+    try:
+        __import__(import_name)
+        console.print(f"  [green]✓[/green] {pip_name} found")
+        return True
+    except ImportError:
+        return _auto_install(pip_name)
+
+
 def _run_start_unified() -> int:
     """Start in unified mode (2 processes)."""
     console.print(Panel("[bold cyan]firm start[/bold cyan] — unified mode", border_style="cyan"))
 
-    # Check if mcp-openclaw-extensions is installed
-    try:
-        import src.main  # noqa: F401
-        console.print("  [green]✓[/green] mcp-openclaw-extensions found")
-    except ImportError:
-        console.print("  [yellow]![/yellow] mcp-openclaw-extensions not installed")
-        console.print("    Install: [bold]pip install mcp-openclaw-extensions[/bold]")
+    # Check / auto-install mcp-openclaw-extensions
+    has_mcp = _ensure_package("src.main", "mcp-openclaw-extensions")
 
     # Start openclaw-extensions
     alive, pid = _is_running(OPENCLAW_PID)
     if alive:
         console.print(f"  [dim]openclaw-extensions already running (PID {pid})[/dim]")
-    else:
+    elif has_mcp:
         try:
             proc = subprocess.Popen(
                 [sys.executable, "-m", "src.main"],
@@ -173,12 +201,17 @@ def _run_start_unified() -> int:
             console.print(f"  [green]✓[/green] openclaw-extensions started (PID {proc.pid})")
         except Exception as e:
             console.print(f"  [red]✗[/red] Failed to start openclaw-extensions: {e}")
+    else:
+        console.print("  [red]✗[/red] openclaw-extensions skipped (not installed)")
+
+    # Check / auto-install memory-os-ai
+    has_mem = _ensure_package("memory_os_ai", "memory-os-ai")
 
     # Start memory-os-ai
     alive, pid = _is_running(MEMORY_PID)
     if alive:
         console.print(f"  [dim]memory-os-ai already running (PID {pid})[/dim]")
-    else:
+    elif has_mem:
         try:
             proc = subprocess.Popen(
                 ["memory-os-ai", "--sse"],
@@ -189,10 +222,11 @@ def _run_start_unified() -> int:
             MEMORY_PID.write_text(str(proc.pid))
             console.print(f"  [green]✓[/green] memory-os-ai started (PID {proc.pid})")
         except FileNotFoundError:
-            console.print("  [yellow]![/yellow] memory-os-ai not installed")
-            console.print("    Install: [bold]pip install memory-os-ai[/bold]")
+            console.print("  [red]✗[/red] memory-os-ai entry point not found after install")
         except Exception as e:
             console.print(f"  [red]✗[/red] Failed to start memory-os-ai: {e}")
+    else:
+        console.print("  [red]✗[/red] memory-os-ai skipped (not installed)")
 
     return 0
 

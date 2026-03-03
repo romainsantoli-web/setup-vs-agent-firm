@@ -29,6 +29,13 @@ services:
 
   mcp-openclaw:
     image: ghcr.io/romainsantoli-web/mcp-openclaw:latest
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        RUN pip install --no-cache-dir mcp-openclaw-extensions
+        EXPOSE 8012
+        CMD ["python", "-m", "src.main"]
     container_name: mcp-openclaw
     ports:
       - "8012:8012"
