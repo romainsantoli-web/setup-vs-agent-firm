@@ -130,11 +130,16 @@ firm memory dashboard           # view learned patterns
 5. [Factory — generate firms](#factory--generate-firms)
 6. [MCP Tools (138)](#mcp-tools-138)
 7. [Security Audit](#security-audit)
-8. [Skills (ClawHub)](#skills-clawhub--34-skills)
-9. [SOUL Personas](#soul-personas)
-10. [CI/CD](#cicd)
-11. [Configuration](#configuration)
-12. [Contributing](#contributing)
+8. [SDKs & Integrations](#sdks--integrations)
+9. [Memory Backends](#memory-backends)
+10. [REST API](#rest-api)
+11. [Benchmarks](#benchmarks)
+12. [Deploy](#deploy)
+13. [Skills (ClawHub)](#skills-clawhub--34-skills)
+14. [SOUL Personas](#soul-personas)
+15. [CI/CD](#cicd)
+16. [Configuration](#configuration)
+17. [Contributing](#contributing)
 
 ---
 
@@ -183,6 +188,14 @@ Options:
   --force     Overwrite existing output directory
 ```
 
+### Examples
+
+Three complete real-world setups in [examples/](examples/):
+
+- **[fintech-startup](examples/fintech-startup/)** — 4 departments, AML/KYC focus
+- **[legal-practice](examples/legal-practice/)** — 8 departments, regulatory compliance
+- **[saas-scaleup](examples/saas-scaleup/)** — 12 departments, PLG + analytics
+
 ---
 
 ## MCP Tools (138)
@@ -213,6 +226,128 @@ Full reference: [mcp-openclaw-extensions/README.md](mcp-openclaw-extensions/READ
 | CRITICAL | 9 | SQL injection, sandbox off, hardcoded secrets, plugin auth bypass, exec plan mutation |
 | HIGH | 19 | Gateway auth, race conditions, Node.js CVEs, shell env sanitization, webhook HMAC |
 | MEDIUM | 19 | Disk budget, DM allowlist, OTEL redaction, RPC rate limiting, log redaction |
+
+---
+
+## SDKs & Integrations
+
+Use Firm from any language or framework — no MCP protocol knowledge required.
+
+### Python SDK
+
+```bash
+pip install firm-sdk              # sync client (zero deps)
+pip install firm-sdk[async]       # async client (aiohttp)
+```
+
+```python
+from firm_sdk import FirmClient
+
+client = FirmClient()             # defaults to localhost:8012
+result = client.memory_status()
+print(result.data)
+```
+
+### TypeScript SDK
+
+```bash
+npm install firm-sdk
+```
+
+```typescript
+import { FirmClient } from 'firm-sdk';
+const client = new FirmClient();
+const status = await client.memoryStatus();
+```
+
+### LangChain & LlamaIndex
+
+```python
+# LangChain — use Firm memory as a retriever
+from integrations.langchain_adapter import FirmMemoryRetriever, FirmToolkit
+retriever = FirmMemoryRetriever()
+toolkit = FirmToolkit()  # wraps 138 tools as LangChain StructuredTools
+
+# LlamaIndex — load memory as Documents
+from integrations.llamaindex_adapter import FirmReader, FirmToolSpec
+reader = FirmReader()
+docs = reader.load_data()
+```
+
+Full SDK reference: [sdks/python/](sdks/python/) · [sdks/typescript/](sdks/typescript/) · [integrations/](integrations/)
+
+---
+
+## Memory Backends
+
+Pluggable storage backends via `integrations.memory_backends`:
+
+| Backend | Install | Use case |
+|---------|---------|----------|
+| **SQLite** (default) | Built-in | Local dev, single machine |
+| **Redis** | `pip install redis` | Distributed, multi-process |
+| **PostgreSQL + pgvector** | `pip install psycopg2-binary` | Production, vector similarity search |
+
+```python
+from integrations.memory_backends import get_backend
+
+backend = get_backend("sqlite", path="./memory.db")
+backend.store("rule-1", {"weight": 0.85, "text": "Always run tests"})
+results = backend.search("tests", limit=5)
+```
+
+---
+
+## REST API
+
+HTTP wrapper for the most common MCP tools — no MCP protocol knowledge needed:
+
+```bash
+python -m integrations.rest_api         # Start on :8080
+curl http://localhost:8080/api/v1       # List all endpoints
+curl http://localhost:8080/api/v1/memory/status
+curl -X POST http://localhost:8080/api/v1/security/scan
+```
+
+12 endpoints covering security, memory, fleet, A2A, delivery, and compliance.
+CORS enabled. See [integrations/rest_api.py](integrations/rest_api.py).
+
+---
+
+## Benchmarks
+
+Reproducible performance suite for memory operations and tool dispatch:
+
+```bash
+python -m benchmarks.run               # Pretty-printed table
+python -m benchmarks.run --json         # Machine-readable JSON
+```
+
+| Benchmark | Typical (p50) | Description |
+|-----------|--------------|-------------|
+| `layer2_parsing` | ~0.03 ms | Parse 50 weighted rules from CLAUDE.md |
+| `hebbian_weight_update` | ~0.02 ms | Single Hebbian weight formula computation |
+| `pii_regex_scan` | ~1.3 ms | 8 PII patterns across 10 KB of text |
+| `cosine_search_1k_768d` | ~29 ms | 1000 × 768-dim cosine similarity search |
+| `pydantic_validation` | <0.01 ms | Validate a typical tool input model |
+| `tool_registry_lookup` | <0.01 ms | Lookup tool from 138-tool registry |
+
+See [benchmarks/](benchmarks/) for the full suite.
+
+---
+
+## Deploy
+
+| Method | Command | Best for |
+|--------|---------|----------|
+| **pip** | `pip install firm-cli && firm start` | Local dev |
+| **Docker Compose** | `docker compose up -d` | Single machine production |
+| **Helm** | `helm install firm deploy/helm/firm-ecosystem` | Kubernetes |
+| **Codespace** | Click "Open in Codespace" | One-click evaluation |
+
+Grafana dashboard included: [deploy/grafana/](deploy/grafana/) (targets Prometheus `/metrics`).
+
+Full deployment guide: [deploy/README.md](deploy/README.md)
 
 ---
 
@@ -309,6 +444,12 @@ python -m pytest tests/ -v --cov=src --cov-fail-under=80
 # firm-cli — 14 tests
 cd firm-cli && pip install -e ".[dev]"
 python -m pytest tests/ -v
+
+# Benchmarks — 8 performance benchmarks
+python -m benchmarks.run --json
+
+# Integration tests (memory backends, SDKs)
+python -m pytest tests/test_backends.py tests/test_sdk.py -v
 ```
 
 ---
