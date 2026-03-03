@@ -140,6 +140,9 @@ firm memory dashboard           # view learned patterns
 
 ## Hebbian Memory — how it works
 
+> **Memory-os-ai** is also available as a **standalone package** — you don't need the full Firm ecosystem.
+> See [Memory-os-ai](https://github.com/romainsantoli-web/Memory-os-ai) for standalone installation.
+
 Firm implements a **4-layer adaptive memory** inspired by neuroscience's Hebbian learning ("neurons that fire together wire together"):
 
 ```
