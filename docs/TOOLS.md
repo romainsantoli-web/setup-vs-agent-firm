@@ -1,4 +1,4 @@
-# MCP Tool Reference — v4.0.0
+# MCP Tool Reference — v4.1.0
 
 > Auto-generated from source code. 138 tools across 26 categories.
 
