@@ -6,8 +6,7 @@ Produces the same output as the Bash factory but works cross-platform (macOS, Li
 from __future__ import annotations
 
 import argparse
-import os
-from datetime import date, timezone
+from datetime import date
 from pathlib import Path
 from typing import Any
 

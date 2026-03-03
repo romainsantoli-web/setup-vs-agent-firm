@@ -6,7 +6,6 @@ import argparse
 import json
 import re
 import shutil
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -118,7 +117,6 @@ def _memory_status() -> int:
 
     # Summary
     strong = sum(1 for r in rules if r["weight"] >= 0.8)
-    emerging = sum(1 for r in rules if 0.4 <= r["weight"] < 0.8)
     atrophy = sum(1 for r in rules if r["weight"] < 0.1)
     if atrophy:
         console.print(f"\n  [red]{atrophy} rule(s) in atrophy[/red] — consider removal")
@@ -136,7 +134,7 @@ def _memory_analyze() -> int:
         # Check if MCP server is reachable
         import urllib.request
         with urllib.request.urlopen("http://127.0.0.1:8012/health", timeout=3) as resp:
-            health = json.loads(resp.read())
+            resp.read()  # validate server is reachable
     except Exception:
         console.print("[yellow]MCP server not reachable. Start with: firm start[/yellow]")
         console.print("[dim]Analysis requires mcp-openclaw-extensions running on port 8012[/dim]")

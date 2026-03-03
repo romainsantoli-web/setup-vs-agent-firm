@@ -20,7 +20,6 @@ import signal
 import subprocess
 import sys
 import time
-import threading
 from pathlib import Path
 
 from rich.console import Console
