@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "firm-cli"
-version = "1.1.1"
+version = "1.2.0"
 description = "One command to create, start, and manage AI agent firms — inter-session Hebbian memory included"
 readme = "README.md"
 license = {text = "MIT"}
@@ -34,7 +34,7 @@ dependencies = [
 
 [project.optional-dependencies]
 full = [
-    "mcp-openclaw-extensions>=3.3.0",
+    "mcp-openclaw-extensions>=4.1.0",
     "memory-os-ai>=3.0.0",
 ]
 dev = [
