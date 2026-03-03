@@ -1,0 +1,141 @@
+{
+  "name": "firm-ecosystem",
+  "displayName": "Firm Ecosystem — AI Agent Memory & Tools",
+  "description": "Inter-session Hebbian memory, 138 MCP tools, and multi-agent factory for AI coding agents.",
+  "version": "0.1.0",
+  "publisher": "firm-ecosystem",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/romainsantoli-web/firm-ecosystem"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "mcp",
+    "ai-memory",
+    "hebbian",
+    "multi-agent",
+    "a2a"
+  ],
+  "activationEvents": [
+    "onCommand:firm.init",
+    "onCommand:firm.start",
+    "onCommand:firm.memoryDashboard",
+    "workspaceContains:CLAUDE.md"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "firm.init",
+        "title": "Firm: Initialize Agent Firm",
+        "category": "Firm"
+      },
+      {
+        "command": "firm.start",
+        "title": "Firm: Start MCP Server",
+        "category": "Firm"
+      },
+      {
+        "command": "firm.stop",
+        "title": "Firm: Stop MCP Server",
+        "category": "Firm"
+      },
+      {
+        "command": "firm.memoryDashboard",
+        "title": "Firm: Memory Dashboard",
+        "category": "Firm"
+      },
+      {
+        "command": "firm.memoryExport",
+        "title": "Firm: Export Memory",
+        "category": "Firm"
+      },
+      {
+        "command": "firm.securityScan",
+        "title": "Firm: Run Security Scan",
+        "category": "Firm"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "firm-explorer",
+          "title": "Firm Ecosystem",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "firm-explorer": [
+        {
+          "id": "firm.memoryView",
+          "name": "Memory Status"
+        },
+        {
+          "id": "firm.toolsView",
+          "name": "MCP Tools"
+        },
+        {
+          "id": "firm.agentsView",
+          "name": "Agent Departments"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Firm Ecosystem",
+      "properties": {
+        "firm.mcpServerUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8012",
+          "description": "MCP server URL"
+        },
+        "firm.memoryServerUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8765",
+          "description": "Memory server URL"
+        },
+        "firm.autoStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-start MCP server when workspace contains CLAUDE.md"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        { "command": "firm.init" },
+        { "command": "firm.start" },
+        { "command": "firm.stop" },
+        { "command": "firm.memoryDashboard" },
+        { "command": "firm.memoryExport" },
+        { "command": "firm.securityScan" }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.4.0",
+    "@vscode/test-electron": "^2.4.0",
+    "@vscode/vsce": "^2.20.0"
+  }
+}
