@@ -46,14 +46,18 @@ Your AI agents forget everything between sessions. Firm fixes that.
 ## Quick-start (2 minutes)
 
 ```bash
-pip install firm-cli
+pip install firm-cli[full]
 
 # Generate a fintech startup with 4 agent departments
 firm init --sector fintech --size startup --output ./my-firm
+cd my-firm
 
-# Start the MCP server (138 tools available immediately)
+# Start both MCP servers (138 tools + Hebbian memory)
 firm start
 ```
+
+> **Note:** `firm-cli[full]` installs `mcp-openclaw-extensions` and `memory-os-ai` automatically.
+> If you only installed `firm-cli`, running `firm start` will prompt you to install the missing packages.
 
 Then add to your VS Code `settings.json`:
 
