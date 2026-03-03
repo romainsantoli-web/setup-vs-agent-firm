@@ -10,7 +10,7 @@ set -euo pipefail
 
 REPOS=(
     "romainsantoli-web/firm-ecosystem"
-    "romainsantoli-web/mcp-openclaw-extensions"
+    "romainsantoli-web/mcp-openclaw"
     "romainsantoli-web/Memory-os-ai"
     "romainsantoli-web/setup-vs-agent-firm"
 )
@@ -73,10 +73,10 @@ apply_topics() {
     echo "  ${topics_str}"
 
     if command -v gh &>/dev/null; then
-        # Use gh API to set topics
-        local json_array
-        json_array=$(printf '%s\n' "${topics[@]}" | sort -u | jq -Rsc 'split("\n") | map(select(. != ""))')
-        gh api -X PUT "repos/${repo}/topics" -f "names=${json_array}" --silent 2>/dev/null \
+        # Use gh API to set topics — body must be {"names": [...]}
+        local json_body
+        json_body=$(printf '%s\n' "${topics[@]}" | sort -u | jq -Rsc '{names: (split("\n") | map(select(. != "")))}')
+        echo "${json_body}" | gh api -X PUT "repos/${repo}/topics" --input - --silent 2>/dev/null \
             && echo "  ✓ Done" \
             || echo "  ! Failed (check gh auth status)"
     else
@@ -94,7 +94,7 @@ apply_topics "romainsantoli-web/firm-ecosystem"          "${ECOSYSTEM_TOPICS[@]}
 echo ""
 apply_topics "romainsantoli-web/Memory-os-ai"            "${MEMORY_TOPICS[@]}"
 echo ""
-apply_topics "romainsantoli-web/mcp-openclaw-extensions"  "${OPENCLAW_TOPICS[@]}"
+apply_topics "romainsantoli-web/mcp-openclaw"             "${OPENCLAW_TOPICS[@]}"
 echo ""
 apply_topics "romainsantoli-web/setup-vs-agent-firm"      "${SETUP_TOPICS[@]}"
 
