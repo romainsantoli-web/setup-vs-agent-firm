@@ -1,4 +1,4 @@
-# Docker Compose — Full OpenClaw Agent Stack
+# Docker Compose — Firm Ecosystem Stack
 # Starts both MCP servers side-by-side for E2E development/demo
 #
 # Usage:
@@ -8,9 +8,7 @@
 
 services:
   memory-os-ai:
-    build:
-      context: ../Memory-os-ai
-      dockerfile: Dockerfile
+    image: roamino/memory-os-ai:latest
     container_name: memory-os-ai
     ports:
       - "8765:8765"
@@ -29,15 +27,11 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  openclaw-extensions:
-    build:
-      context: ./mcp-openclaw-extensions
-      dockerfile: Dockerfile
-    container_name: openclaw-extensions
+  mcp-openclaw:
+    image: ghcr.io/romainsantoli-web/mcp-openclaw:latest
+    container_name: mcp-openclaw
     ports:
       - "8012:8012"
-    env_file:
-      - ./mcp-openclaw-extensions/.env
     environment:
       - MCP_EXT_HOST=0.0.0.0
       - MCP_EXT_PORT=8012
