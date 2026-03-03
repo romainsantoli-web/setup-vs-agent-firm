@@ -1,4 +1,6 @@
-# Build and push Docker images to GitHub Container Registry
+# Validate Docker Compose and build ecosystem images
+# Note: mcp-openclaw-extensions Docker image is built from its own repo
+# (https://github.com/romainsantoli-web/mcp-openclaw)
 name: Docker GHCR
 
 on:
@@ -15,50 +17,10 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build-openclaw:
+  validate-compose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/mcp-openclaw-extensions
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: mcp-openclaw-extensions
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  build-compose:
-    runs-on: ubuntu-latest
-    needs: build-openclaw
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify compose build
-        run: |
-          # Smoke test — ensure compose file is valid
-          docker compose config -q
+      - name: Verify compose file is valid
+        run: docker compose config -q
