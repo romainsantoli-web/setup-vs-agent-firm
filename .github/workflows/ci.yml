@@ -13,6 +13,18 @@ permissions:
   contents: read
 
 jobs:
+  security-config-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate OpenClaw security config baseline
+        run: python scripts/check_openclaw_security_config.py
+
   test-cli:
     runs-on: ubuntu-latest
     strategy:

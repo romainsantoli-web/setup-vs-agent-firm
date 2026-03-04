@@ -12,5 +12,44 @@
       "type": "http",
       "url": "http://127.0.0.1:8012/mcp"
     }
+  },
+  "gateway": {
+    "bind": "loopback",
+    "http": {
+      "securityHeaders": {
+        "strictTransportSecurity": "max-age=31536000; includeSubDomains",
+        "xContentTypeOptions": "nosniff",
+        "referrerPolicy": "no-referrer"
+      }
+    },
+    "rateLimit": {
+      "maxRequestsPerMinute": 120,
+      "maxConcurrent": 10
+    }
+  },
+  "hooks": {
+    "rateLimit": {
+      "maxRequestsPerMinute": 60,
+      "maxConcurrent": 5
+    }
+  },
+  "session": {
+    "maintenance": {
+      "maxDiskBytes": 524288000,
+      "highWaterBytes": 419430400
+    }
+  },
+  "channels": {
+    "defaults": {
+      "dmPolicy": "pairing"
+    },
+    "telegram": {
+      "direct": {
+        "requireTopic": true,
+        "topicAllowlist": [
+          1001
+        ]
+      }
+    }
   }
 }
