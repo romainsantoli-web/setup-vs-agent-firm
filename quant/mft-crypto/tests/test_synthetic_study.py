@@ -17,7 +17,7 @@ def test_generator_is_deterministic_and_complete(planted_market):
     assert np.allclose(df["close"], again["ALT01USDT"]["close"])
     assert (df["high"] >= df[["open", "close"]].max(axis=1) - 1e-9).all()
     assert (df["low"] <= df[["open", "close"]].min(axis=1) + 1e-9).all()
-    assert df["is_funding"].sum() == 16 * 3
+    assert df["is_funding"].sum() == 16 * 24  # Kraken: hourly funding
 
 
 def test_report_recovers_planted_and_rejects_null(planted_market, null_market):

@@ -1,6 +1,7 @@
 import asyncio
 import json
 
+import pandas as pd
 import pytest
 from pydantic import ValidationError
 
@@ -10,7 +11,7 @@ RX = 1_735_689_600_123_000_000  # 2025-01-01T00:00:00.123Z
 
 
 def test_config_validation():
-    assert c.CollectorConfig(symbols=("BTCUSDT",)).venues == ("binance_um", "bybit")
+    assert c.CollectorConfig(symbols=("BTCUSDT",)).venues == ("kraken_futures", "binance_um", "bybit")
     for bad in (dict(symbols=("btc-usdt",)), dict(symbols=("BTCUSDT",), venues=("ftx",)),
                 dict(symbols=("BTCUSDT",), out_dir="../x"), dict(symbols=())):
         with pytest.raises(ValidationError):
@@ -158,3 +159,51 @@ def test_run_stream_reconnects_and_subscribes():
     assert asyncio.run(c.run_stream("wss://y", lambda m, rx: None, connect_boom, max_sessions=2,
                                     sleep=fake_sleep)) == 2
     assert sleeps[-1] == 2.0
+
+
+def test_kraken_symbol_mapping():
+    assert c.kraken_symbol("BTCUSDT") == "PF_XBTUSD"
+    assert c.kraken_symbol("ETHUSDT") == "PF_ETHUSD"
+    assert c.kraken_symbol("SOLUSD") == "PF_SOLUSD"
+    assert c.kraken_symbol("XRP") == "PF_XRPUSD"
+    assert c.canonical_symbol("PF_XBTUSD") == "BTCUSDT"
+    assert c.canonical_symbol("PF_SOLUSD") == "SOLUSDT"
+
+
+def test_kraken_futures_normalizer(monkeypatch):
+    fill = {"feed": "trade", "product_id": "PF_XBTUSD", "side": "buy", "type": "fill", "time": 1, "qty": 0.5, "price": 100.0}
+    r = c.normalize_kraken_futures(fill, RX)
+    assert len(r) == 1 and r[0]["side"] == "buy" and r[0]["trade_type"] == "fill"
+    liq = {**fill, "side": "sell", "type": "liquidation", "qty": 2.0}
+    r = c.normalize_kraken_futures(liq, RX)
+    assert [x["type"] for x in r] == ["trade", "liquidation"]
+    assert r[1]["liq_side"] == "long" and r[1]["usd"] == 200.0
+    monkeypatch.setattr(c, "KRAKEN_LIQ_SELL_IS_LONG", False)
+    assert c.normalize_kraken_futures(liq, RX)[1]["liq_side"] == "short"
+    tick = {"feed": "ticker", "product_id": "PF_ETHUSD", "time": 5, "bid": 10.0, "ask": 10.01, "bid_size": 3,
+            "ask_size": 4, "markPrice": 10.005, "index": 10.0, "relative_funding_rate": 1e-5,
+            "next_funding_rate_time": 9, "openInterest": 1000}
+    out = c.normalize_kraken_futures(tick, RX)
+    assert [x["type"] for x in out] == ["bbo", "mark"]
+    assert out[1]["oi_usd"] == pytest.approx(10005.0) and out[1]["funding_rate"] == 1e-5
+    assert c.normalize_kraken_futures({"feed": "ticker", "product_id": "PF_ETHUSD"}, RX) == []
+    assert c.normalize_kraken_futures({"feed": "trade_snapshot", "trades": []}, RX) == []
+    assert c.normalize_kraken_futures({"event": "subscribed"}, RX) == []
+    subs = c.kraken_subscriptions(["BTCUSDT", "ETHUSDT"])
+    assert {s["feed"] for s in subs} == {"trade", "ticker", "heartbeat"}
+    assert subs[0]["product_ids"] == ["PF_XBTUSD", "PF_ETHUSD"]
+
+
+def test_kraken_records_join_canonical_symbol(tmp_path):
+    t0 = 1_735_689_630_000
+    recs = pd.DataFrame([
+        {"venue": "kraken_futures", "type": "bbo", "symbol": "PF_XBTUSD", "ts": t0, "rx_ns": RX, "bid": 100.0, "ask": 100.04},
+        {"venue": "kraken_futures", "type": "liquidation", "symbol": "PF_XBTUSD", "ts": t0, "rx_ns": RX, "liq_side": "long", "usd": 1e4},
+        {"venue": "bybit", "type": "liquidation", "symbol": "BTCUSDT", "ts": t0, "rx_ns": RX, "liq_side": "long", "usd": 2e4},
+        {"venue": "binance_um", "type": "bbo", "symbol": "BTCUSDT", "ts": t0, "rx_ns": RX, "bid": 100.1, "ask": 100.12},
+    ])
+    recs["time"] = pd.to_datetime(recs["ts"], unit="ms", utc=True)
+    b = c.records_to_bar_columns(recs, "BTCUSDT", "kraken_futures", ref_venue="binance_um")
+    assert b["liq_long_usd"].iloc[0] == 3e4  # pooled across venues
+    assert b["spread_bps"].iloc[0] == pytest.approx(4.0, rel=1e-3)
+    assert b["close_ref"].iloc[0] == pytest.approx(100.11)

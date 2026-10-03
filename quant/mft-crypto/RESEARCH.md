@@ -8,6 +8,59 @@
 
 ---
 
+## 0. Mise à jour du 03/10 — exécution sur **Kraken Futures** (remplace Binance)
+
+Binance n'offre pas ses perps aux résidents français. Le livre s'exécute donc sur **Kraken Futures**
+(perps linéaires `PF_*`). Binance et Bybit restent des **sources d'information** (lead-lag,
+liquidations), jamais des venues de trading. Les §1–2 ci-dessous (calculés pour Binance) sont
+conservés comme point de comparaison ; les chiffres qui comptent sont ceux de cette section.
+
+**Ce que le desk a déjà mesuré sur Kraken** (session MMXM, VPS Londres) :
+- latence Londres → Kraken Futures : plancher aller simple 2,3 ms, médiane de réception des trades
+  `PF_XBTUSD` 8,6 ms. Binance arrive à Londres en environ 112 ms (venue lointaine) ;
+- market making sur flux public : −0,9 à −1,7 bp par fill ; **vrais ordres de Romain : −2,6 à
+  −3 bp par fill**. C'est notre calibration de sélection adverse (`adverse_bps = 2,5`) ;
+- perp en avance sur spot de 70 à 150 ms, mais 0,8–1,3 bp de gain, très en dessous des frais.
+  Confirme que l'horizon sub-seconde est mort ;
+- un enregistreur Kraken Futures (L1 + trades, 10 perps) et un Binance tournent sur le VPS jusqu'au
+  13/10. **Pas besoin de déployer un nouveau collecteur pour Kraken** : on lit ces données.
+
+**Barème Kraken Futures** (`mft/fees.py`, instantané non vérifié ; l'offre UE/MiFID peut différer) :
+taker 5 → 1 bp, maker 2 → 0 bp. Le palier haut est atteint dès **100 M$ sur 30 jours**, contre
+25 Md$ pour le VIP9 Binance. Les frais cessent d'être la contrainte ; **la profondeur devient la
+contrainte**.
+
+**IC combiné requis pour un Sharpe net ≥ 2** (10 perps, levier brut 3×, spread 3 bps, sélection
+adverse 2,5 bps mesurée, ADV 30 M$ ; `reports/tier_economics.md`) :
+
+| capital | horizon | taker | entrée maker | maker 2 jambes (borne haute) |
+|---|---|---|---|---|
+| 100 k$ | 15 min | 0,135 (K3) | 0,115 (K3) | 0,083 (K4) |
+| 100 k$ | 1 h | 0,088 (K4) | 0,078 (K4) | 0,063 (K4) |
+| 250 k$ | 1 h | 0,095 (K5) | 0,082 (K5) | 0,059 (K6) |
+| 1 M$ | 1 h | 0,129 (K6) | 0,099 (K6) | 0,054 (K7) |
+
+**Ce que ça change :**
+1. **L'impact domine.** À 250 k$, un clip fait 75 k$ sur un carnet de ~30 M$/jour, soit environ
+   3,7 bps par jambe. C'est plus que les frais au palier K5. Le coefficient d'impact (0,2, hypothèse)
+   est le premier paramètre à calibrer sur les données L1/L2 Kraken déjà enregistrées.
+2. **L'avantage maker disparaît presque** avec la sélection adverse mesurée. L'entrée passive ne
+   vaut que si le signal décide aussi *quand* poster, c'est-à-dire si les fills sur entrée
+   directionnelle ont un meilleur markout que les fills MM. À mesurer, pas à supposer.
+3. **Capacité : 100–250 k$** pour un livre directionnel sur 10 perps Kraken. Au-delà, l'IC requis
+   monte vite. Pour grossir, il faut plus de noms ou des horizons plus longs.
+4. **La cible de recherche** devient un IC combiné hors échantillon d'environ **0,08 à 1 h**. C'est
+   plus dur que sur Binance (0,06). Le meilleur levier de signal attendu est **Binance/Bybit →
+   Kraken** : Kraken suit le marché, et l'écart de prix résiduel à 1–15 min est une information
+   que nous lisons sans y trader.
+5. Funding Kraken **horaire** (le simulateur et le banc synthétique paient désormais à chaque heure).
+
+**À vérifier avant tout trading :** barème et levier maximal accessibles via l'entité UE de Kraken
+pour le profil de Romain (le levier brut de 3× est une hypothèse), sémantique du champ `side` des
+liquidations dans le flux `trade` Kraken, unités de `relative_funding_rate`.
+
+---
+
 ## 1. Verdict en une page
 
 **Ce que l'arithmétique impose, avant tout signal :**

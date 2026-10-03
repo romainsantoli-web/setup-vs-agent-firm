@@ -13,6 +13,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 SYMBOL_RE = r"^[A-Z0-9]{2,20}$"
+KRAKEN_SYMBOL_RE = r"^P[FI]_[A-Z0-9]{2,15}USD$"  # PF_XBTUSD (linear multi-collateral), PI_ (inverse)
 SLUG_RE = r"^[a-z0-9][a-z0-9_-]{0,39}$"
 
 
@@ -98,9 +99,10 @@ class BacktestConfig(_Strict):
 
 
 class DownloadRequest(_Strict):
-    venue: Literal["binance_um", "bybit"]
-    dataset: Literal["aggTrades", "trades", "bookTicker", "fundingRate", "metrics", "premiumIndexKlines", "klines"]
-    symbol: str = Field(pattern=SYMBOL_RE)
+    venue: Literal["binance_um", "bybit", "kraken_futures"]
+    dataset: Literal["aggTrades", "trades", "bookTicker", "fundingRate", "metrics", "premiumIndexKlines", "klines",
+                     "executions", "candles", "funding"]
+    symbol: str = Field(min_length=2, max_length=24)
     start: dt.date
     end: dt.date
     out_dir: str = Field(min_length=1, max_length=512)
@@ -110,6 +112,22 @@ class DownloadRequest(_Strict):
     @classmethod
     def _path(cls, v: str) -> str:
         return _no_traversal(v)
+
+    @field_validator("symbol")
+    @classmethod
+    def _symbol(cls, v: str, info) -> str:
+        import re
+        if not (re.match(SYMBOL_RE, v) or re.match(KRAKEN_SYMBOL_RE, v)):
+            raise ValueError("symbol must look like BTCUSDT or PF_XBTUSD")
+        return v
+
+    @model_validator(mode="after")
+    def _venue_symbol(self) -> "DownloadRequest":
+        import re
+        kraken = self.venue == "kraken_futures"
+        if kraken != bool(re.match(KRAKEN_SYMBOL_RE, self.symbol)):
+            raise ValueError("kraken_futures needs PF_/PI_ symbols; other venues need BTCUSDT-style symbols")
+        return self
 
     @model_validator(mode="after")
     def _dates(self) -> "DownloadRequest":
@@ -126,6 +144,7 @@ class StudyConfig(_Strict):
     bars_per_day: int = Field(default=1440, ge=24, le=86_400)
     seed: int = Field(default=7, ge=0, le=2**31 - 1)
     planted: bool = True
+    funding_interval_h: int = Field(default=1, ge=1, le=24)  # Kraken Futures: hourly funding
     horizons: tuple[int, ...] = Field(default=(1, 5, 15, 30, 60), min_length=1, max_length=16)
     out_path: str = Field(default="reports/synthetic_study.md", min_length=1, max_length=512)
 

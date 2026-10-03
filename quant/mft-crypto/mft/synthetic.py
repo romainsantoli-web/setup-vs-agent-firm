@@ -52,7 +52,7 @@ def generate_market(cfg: StudyConfig) -> dict[str, pd.DataFrame]:
     sigma_bar = 0.6 / np.sqrt(365 * bpd)  # 60 % annual vol, in log-return units
     log_vol = _ar1(rng, n, np.exp(-1.0 / (bpd / 2)), 0.35)
     mkt = rng.standard_normal(n)  # common factor shocks (unit)
-    funding_clock = (idx.hour % 8 == 0) & (idx.minute == 0) & (idx.second == 0)
+    funding_clock = (idx.hour % cfg.funding_interval_h == 0) & (idx.minute == 0) & (idx.second == 0)
 
     out: dict[str, pd.DataFrame] = {}
     for i in range(cfg.n_symbols):
@@ -62,7 +62,8 @@ def generate_market(cfg: StudyConfig) -> dict[str, pd.DataFrame]:
         vol = sigma_bar * np.exp(log_vol + _ar1(rng, n, np.exp(-1.0 / bpd), 0.15))
 
         alpha = _ar1(rng, n, np.exp(-1.0 / 20.0))  # informed-flow state, unit variance
-        funding = 1.0 + _ar1(rng, n, np.exp(-1.0 / bpd), 3.0)  # bps per 8h
+        # bps per funding interval (scaled from an 8h-equivalent level: Kraken pays hourly)
+        funding = (1.0 + _ar1(rng, n, np.exp(-1.0 / bpd), 3.0)) * cfg.funding_interval_h / 8.0
         premium = _ar1(rng, n, np.exp(-1.0 / 60.0), 4.0)  # bps
 
         # liquidation cascades: jumps with partial reversal
@@ -71,7 +72,7 @@ def generate_market(cfg: StudyConfig) -> dict[str, pd.DataFrame]:
         jump = ev * side * rng.uniform(3.0, 8.0, n) * vol
         reversal = -0.3 * P * _decay_kernel_conv(jump, tau=30.0)
 
-        drift = P * vol * (0.035 * alpha - 0.01 * (funding - 1.0) / 3.0 - 0.01 * premium / 4.0) + reversal
+        drift = P * vol * (0.035 * alpha - 0.01 * (funding * 8.0 / cfg.funding_interval_h - 1.0) / 3.0 - 0.01 * premium / 4.0) + reversal
         shock = vol * (beta * mkt * (1.0 / np.sqrt(beta**2 + idio_w**2)) * 1.0
                        + idio_w * rng.standard_normal(n) / np.sqrt(beta**2 + idio_w**2))
         r_eff = drift + shock + jump

@@ -26,17 +26,36 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .models import SYMBOL_RE, _no_traversal
 
+KRAKEN_FUTURES_WS = "wss://futures.kraken.com/ws/v1"
 BINANCE_WS = "wss://fstream.binance.com/stream?streams="
 BYBIT_WS = "wss://stream.bybit.com/v5/public/linear"
 # Bybit v5 docs: "When you receive a Buy update, this means that a long position has been
 # liquidated". VERIFY against live data (price direction around the print) before trusting it.
 BYBIT_LIQ_BUY_IS_LONG = True
+# Kraken Futures trade feed: `side` is the taker side and `type == "liquidation"` flags forced
+# orders, so a liquidation with side "sell" = a long being closed. VERIFY on live data.
+KRAKEN_LIQ_SELL_IS_LONG = True
+_KRAKEN_BASE = {"BTC": "XBT"}
+
+
+def kraken_symbol(sym: str) -> str:
+    """Canonical BTCUSDT-style symbol -> Kraken Futures linear perp (BTCUSDT -> PF_XBTUSD)."""
+    base = sym[:-4] if sym.endswith("USDT") else sym[:-3] if sym.endswith("USD") else sym
+    return f"PF_{_KRAKEN_BASE.get(base, base)}USD"
+
+
+def canonical_symbol(kraken_sym: str) -> str:
+    """PF_XBTUSD -> BTCUSDT (to join Kraken with Binance/Bybit data)."""
+    base = kraken_sym.split("_", 1)[1][:-3]
+    rev = {v: k for k, v in _KRAKEN_BASE.items()}
+    return f"{rev.get(base, base)}USDT"
 
 
 class CollectorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     symbols: tuple[str, ...] = Field(min_length=1, max_length=100)
-    venues: tuple[str, ...] = Field(default=("binance_um", "bybit"), min_length=1, max_length=4)
+    # Kraken Futures = execution venue; Binance / Bybit = information only (lead-lag, liquidations)
+    venues: tuple[str, ...] = Field(default=("kraken_futures", "binance_um", "bybit"), min_length=1, max_length=4)
     out_dir: str = Field(default="data/live", min_length=1, max_length=512)
     flush_every: int = Field(default=500, ge=1, le=1_000_000)
 
@@ -52,8 +71,8 @@ class CollectorConfig(BaseModel):
     @field_validator("venues")
     @classmethod
     def _ven(cls, v: tuple[str, ...]) -> tuple[str, ...]:
-        if set(v) - {"binance_um", "bybit"}:
-            raise ValueError("supported venues: binance_um, bybit")
+        if set(v) - {"kraken_futures", "binance_um", "bybit"}:
+            raise ValueError("supported venues: kraken_futures, binance_um, bybit")
         return v
 
     @field_validator("out_dir")
@@ -139,6 +158,42 @@ def normalize_bybit(msg: dict, rx_ns: int, state: BybitState) -> list[dict]:
     return out
 
 
+def normalize_kraken_futures(msg: dict, rx_ns: int) -> list[dict]:
+    """Kraken Futures WS v1. `trade_snapshot` (history replayed on subscribe) is skipped so a
+    reconnect never duplicates prints; heartbeats / acks carry no `feed` payload we use."""
+    feed = msg.get("feed")
+    if feed == "trade":
+        side = msg["side"]
+        px, qty = _f(msg["price"]), _f(msg["qty"])
+        base = {"venue": "kraken_futures", "symbol": msg["product_id"], "ts": msg["time"], "rx_ns": rx_ns}
+        out = [{**base, "type": "trade", "price": px, "qty": qty, "side": side, "trade_type": msg.get("type", "fill")}]
+        if msg.get("type") == "liquidation":
+            long_liq = (side == "sell") if KRAKEN_LIQ_SELL_IS_LONG else (side == "buy")
+            out.append({**base, "type": "liquidation", "liq_side": "long" if long_liq else "short",
+                        "price": px, "qty": qty, "usd": px * qty})
+        return out
+    if feed == "ticker":
+        base = {"venue": "kraken_futures", "symbol": msg["product_id"], "ts": msg.get("time"), "rx_ns": rx_ns}
+        out = []
+        if msg.get("bid") and msg.get("ask"):
+            out.append({**base, "type": "bbo", "bid": _f(msg["bid"]), "bid_qty": _f(msg.get("bid_size", 0)),
+                        "ask": _f(msg["ask"]), "ask_qty": _f(msg.get("ask_size", 0))})
+        if msg.get("markPrice") and msg.get("index"):
+            mark = _f(msg["markPrice"])
+            out.append({**base, "type": "mark", "mark": mark, "index": _f(msg["index"]),
+                        # relative rate per funding period (hourly on Kraken) — VERIFY units on live data
+                        "funding_rate": _f(msg.get("relative_funding_rate", 0.0) or 0.0),
+                        "next_funding_ts": int(msg.get("next_funding_rate_time", 0) or 0),
+                        "oi_usd": _f(msg.get("openInterest", 0.0) or 0.0) * mark})
+        return out
+    return []
+
+
+def kraken_subscriptions(symbols: Iterable[str]) -> list[dict]:
+    ids = [kraken_symbol(s) for s in symbols]
+    return [{"event": "subscribe", "feed": f, "product_ids": ids} for f in ("trade", "ticker", "heartbeat")]
+
+
 def binance_url(symbols: Iterable[str]) -> str:
     streams = []
     for s in symbols:
@@ -202,8 +257,12 @@ def read_records(paths: Iterable[Path]) -> pd.DataFrame:
 def records_to_bar_columns(rec: pd.DataFrame, symbol: str, venue: str, bar: str = "1min",
                            ref_venue: str | None = None) -> pd.DataFrame:
     """Collected records -> the bar columns the signal library expects (liquidations, spread,
-    funding, premium, OI, cross-venue reference mid). Trades -> use data_sources.trades_to_bars."""
-    r = rec[rec["symbol"] == symbol]
+    funding, premium, OI, cross-venue reference mid). Trades -> use data_sources.trades_to_bars.
+
+    `symbol` is canonical (BTCUSDT); Kraken records (PF_XBTUSD) are mapped onto it, so
+    liquidations are pooled across venues and the reference venue joins on the same asset."""
+    rec = rec.assign(csym=[canonical_symbol(x) if str(x).startswith(("PF_", "PI_")) else x for x in rec["symbol"]])
+    r = rec[rec["csym"] == symbol]
     own = r[r["venue"] == venue]
     out = pd.DataFrame()
     bbo = own[own["type"] == "bbo"].set_index("time")
@@ -272,6 +331,11 @@ async def run_collector(cfg: CollectorConfig, connect: Connect | None = None,
         import websockets
         connect = lambda u: websockets.connect(u, max_size=2**22, ping_interval=20)  # noqa: E731
     tasks, writers = [], []
+    if "kraken_futures" in cfg.venues:
+        wk = HourlyWriter(cfg.out_dir, "kraken_futures", cfg.flush_every)
+        writers.append(wk)
+        tasks.append(run_stream(KRAKEN_FUTURES_WS, lambda m, rx: wk.write(normalize_kraken_futures(m, rx)),
+                                connect, subscribe=kraken_subscriptions(cfg.symbols), max_sessions=max_sessions))
     if "binance_um" in cfg.venues:
         w = HourlyWriter(cfg.out_dir, "binance_um", cfg.flush_every)
         writers.append(w)

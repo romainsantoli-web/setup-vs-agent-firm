@@ -1,6 +1,9 @@
 """Run the live collector (deploy on the London VPS under systemd; see RESEARCH.md §7).
 
     python scripts/collect.py --symbols BTCUSDT ETHUSDT SOLUSDT --out-dir /data/live
+
+Symbols are canonical (BTCUSDT); Kraken Futures subscribes to the matching PF_ perps
+(BTCUSDT -> PF_XBTUSD). Kraken = execution venue; Binance/Bybit = information only.
 """
 
 from __future__ import annotations
@@ -18,7 +21,7 @@ from mft.collector import CollectorConfig, run_collector  # noqa: E402
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--symbols", nargs="+", required=True)
-    p.add_argument("--venues", nargs="+", default=["binance_um", "bybit"])
+    p.add_argument("--venues", nargs="+", default=["kraken_futures", "binance_um", "bybit"])
     p.add_argument("--out-dir", default="data/live")
     p.add_argument("--flush-every", type=int, default=500)
     a = p.parse_args(argv)

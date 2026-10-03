@@ -5,6 +5,12 @@ Archives (no API key):
       aggTrades, trades, bookTicker, metrics (OI, long/short ratios, 5 min), klines,
       premiumIndexKlines, markPriceKlines (daily) ; fundingRate (monthly).
   * Bybit           https://public.bybit.com/trading/{SYMBOL}/{SYMBOL}{YYYY-MM-DD}.csv.gz
+  * Kraken Futures  (EXECUTION VENUE) public REST, JSON:
+      candles    https://futures.kraken.com/api/charts/v1/{trade|mark|spot}/{PF_XBTUSD}/1m?from=&to=  (s)
+      executions https://futures.kraken.com/api/history/v2/market/{PF_XBTUSD}/executions?since=&before= (ms,
+                 paginated with `continuationToken`)
+      funding    https://futures.kraken.com/derivatives/api/v4/historicalfundingrates?symbol=PF_XBTUSD
+    Endpoint shapes are from the public docs as known to the author: VERIFY on first download.
 Liquidations are NOT in these archives in usable form: Binance `!forceOrder@arr` only pushes the
 largest liquidation per symbol per second, Bybit `allLiquidation` pushes all. They must be
 recorded live by our own collector on the London VPS from day one (see RESEARCH.md §6).
@@ -14,6 +20,7 @@ from __future__ import annotations
 
 import datetime as dt
 import io
+import json
 import time
 import urllib.request
 import zipfile
@@ -26,6 +33,7 @@ from .models import DownloadRequest
 
 BINANCE_UM_BASE = "https://data.binance.vision/data/futures/um"
 BYBIT_BASE = "https://public.bybit.com/trading"
+KRAKEN_FUT_BASE = "https://futures.kraken.com"
 _MONTHLY_ONLY = {"fundingRate"}
 _WITH_INTERVAL = {"klines", "premiumIndexKlines"}
 
@@ -34,7 +42,27 @@ def _dates(start: dt.date, end: dt.date) -> list[dt.date]:
     return [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
 
 
+def _day_bounds(d: dt.date) -> tuple[int, int]:
+    start = int(dt.datetime(d.year, d.month, d.day, tzinfo=dt.timezone.utc).timestamp())
+    return start, start + 86_400
+
+
 def build_urls(req: DownloadRequest) -> list[str]:
+    if req.venue == "kraken_futures":
+        if req.dataset == "funding":
+            return [f"{KRAKEN_FUT_BASE}/derivatives/api/v4/historicalfundingrates?symbol={req.symbol}"]
+        urls = []
+        for d in _dates(req.start, req.end):
+            a, b = _day_bounds(d)
+            if req.dataset == "candles":
+                for tick in ("trade", "mark", "spot"):
+                    urls.append(f"{KRAKEN_FUT_BASE}/api/charts/v1/{tick}/{req.symbol}/{req.interval}?from={a}&to={b}")
+            elif req.dataset == "executions":
+                urls.append(f"{KRAKEN_FUT_BASE}/api/history/v2/market/{req.symbol}/executions"
+                            f"?since={a * 1000}&before={b * 1000}&sort=asc")
+            else:
+                raise ValueError("kraken_futures datasets: candles, executions, funding")
+        return urls
     if req.venue == "bybit":
         if req.dataset != "trades":
             raise ValueError("bybit public archive only provides 'trades'")
@@ -59,14 +87,17 @@ def download(req: DownloadRequest, retries: int = 4, opener=urllib.request.urlop
     out.mkdir(parents=True, exist_ok=True)
     saved = []
     for url in build_urls(req):
-        dest = out / url.rsplit("/", 1)[1]
+        dest = out / _filename(url)
         if dest.exists() and dest.stat().st_size > 0:
             saved.append(dest)
             continue
         for attempt in range(retries):
             try:
-                with opener(url, timeout=60) as resp:
-                    dest.write_bytes(resp.read())
+                if "futures.kraken.com" in url and "/executions" in url:
+                    dest.write_text(json.dumps(fetch_kraken_executions(url, opener)), encoding="utf-8")
+                else:
+                    with opener(url, timeout=60) as resp:
+                        dest.write_bytes(resp.read())
                 saved.append(dest)
                 break
             except Exception as exc:  # noqa: BLE001 — network errors vary by platform
@@ -76,6 +107,48 @@ def download(req: DownloadRequest, retries: int = 4, opener=urllib.request.urlop
                     raise
                 time.sleep(2 ** (attempt + 1))
     return saved
+
+
+def _filename(url: str) -> str:
+    """Stable local file name; Kraken URLs carry their identity in the path + query string."""
+    if "futures.kraken.com" not in url:
+        return url.rsplit("/", 1)[1]
+    tail = url.split("futures.kraken.com/", 1)[1]
+    return tail.replace("/", "_").replace("?", "_").replace("&", "_").replace("=", "-") + ".json"
+
+
+def fetch_kraken_executions(url: str, opener=urllib.request.urlopen, max_pages: int = 10_000) -> list[dict]:
+    """Follow Kraken's `continuationToken` pagination for one executions URL."""
+    out: list[dict] = []
+    token = None
+    for _ in range(max_pages):
+        page_url = url + (f"&continuationToken={token}" if token else "")
+        with opener(page_url, timeout=60) as resp:
+            page = json.loads(resp.read())
+        out += page.get("elements", [])
+        token = page.get("continuationToken")
+        if not token:
+            break
+    return out
+
+
+def read_kraken_executions(elements: list[dict]) -> pd.DataFrame:
+    """Kraken Futures public executions -> DataFrame[ts, price, qty, buyer_is_maker]."""
+    rows = []
+    for el in elements:
+        ex = el["event"]["Execution"]["execution"]
+        taker_sells = ex["takerOrder"]["direction"].lower() == "sell"
+        rows.append({"ts": pd.to_datetime(ex["timestamp"], unit="ms", utc=True), "price": float(ex["price"]),
+                     "qty": float(ex["quantity"]), "buyer_is_maker": taker_sells})
+    return pd.DataFrame(rows, columns=["ts", "price", "qty", "buyer_is_maker"])
+
+
+def read_kraken_candles(payload: dict) -> pd.DataFrame:
+    c = pd.DataFrame(payload.get("candles", []))
+    if c.empty:
+        return pd.DataFrame(columns=["open", "high", "low", "close", "volume"])
+    c.index = pd.to_datetime(c.pop("time"), unit="ms", utc=True)
+    return c[["open", "high", "low", "close", "volume"]].astype(float)
 
 
 def read_binance_agg_trades(path: Path) -> pd.DataFrame:

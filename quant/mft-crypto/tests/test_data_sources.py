@@ -1,5 +1,6 @@
 import datetime as dt
 import io
+import json
 import urllib.error
 import zipfile
 
@@ -90,3 +91,59 @@ def test_trades_to_bars():
     assert first["large_buy_volume"] == 200_000 and first["large_sell_volume"] == 0
     assert b["n_trades"].tolist() == [2, 0, 1]
     assert b.iloc[1]["close"] == 102.0 and b.iloc[1]["low"] == 102.0  # empty bar carried forward
+
+
+def _kreq(**kw):
+    base = dict(venue="kraken_futures", dataset="candles", symbol="PF_XBTUSD",
+                start=dt.date(2025, 1, 1), end=dt.date(2025, 1, 2), out_dir="data")
+    return DownloadRequest(**{**base, **kw})
+
+
+def test_kraken_request_validation():
+    with pytest.raises(Exception):
+        _kreq(symbol="BTCUSDT")  # kraken needs PF_ symbols
+    with pytest.raises(Exception):
+        _req(symbol="PF_XBTUSD")  # binance needs BTCUSDT-style
+    with pytest.raises(Exception):
+        _kreq(symbol="pf_xbt/usd")
+
+
+def test_kraken_urls():
+    u = ds.build_urls(_kreq())
+    assert len(u) == 6 and u[0] == "https://futures.kraken.com/api/charts/v1/trade/PF_XBTUSD/1m?from=1735689600&to=1735776000"
+    assert "/mark/" in u[1] and "/spot/" in u[2]
+    e = ds.build_urls(_kreq(dataset="executions"))
+    assert e[0].endswith("executions?since=1735689600000&before=1735776000000&sort=asc")
+    f = ds.build_urls(_kreq(dataset="funding"))
+    assert f == ["https://futures.kraken.com/derivatives/api/v4/historicalfundingrates?symbol=PF_XBTUSD"]
+    with pytest.raises(ValueError):
+        ds.build_urls(_kreq(dataset="aggTrades"))
+    assert ds._filename(u[0]).endswith(".json") and "/" not in ds._filename(u[0])
+
+
+def _exec(ts, px, qty, taker):
+    return {"event": {"Execution": {"execution": {"timestamp": ts, "price": str(px), "quantity": str(qty),
+                                                   "takerOrder": {"direction": taker}, "makerOrder": {}}}}}
+
+
+def test_kraken_executions_pagination_parse_and_download(tmp_path):
+    pages = {None: {"elements": [_exec(1735689600000, 100, 1, "Buy")], "continuationToken": "abc"},
+             "abc": {"elements": [_exec(1735689601000, 101, 2, "Sell")]}}
+
+    def opener(url, timeout):
+        tok = url.split("continuationToken=")[1] if "continuationToken=" in url else None
+        return _Resp(json.dumps(pages[tok]).encode())
+
+    els = ds.fetch_kraken_executions("https://futures.kraken.com/x?since=1", opener)
+    df = ds.read_kraken_executions(els)
+    assert df["buyer_is_maker"].tolist() == [False, True] and df["qty"].sum() == 3
+    assert ds.read_kraken_executions([]).empty
+    saved = ds.download(_kreq(dataset="executions", end=dt.date(2025, 1, 1), out_dir=str(tmp_path)), opener=opener)
+    assert len(json.loads(saved[0].read_text())) == 2
+
+
+def test_kraken_candles():
+    df = ds.read_kraken_candles({"candles": [{"time": 1735689600000, "open": "1", "high": "2", "low": "0.5",
+                                              "close": "1.5", "volume": "10"}]})
+    assert df["close"].iloc[0] == 1.5 and str(df.index.tz) == "UTC"
+    assert ds.read_kraken_candles({}).empty
