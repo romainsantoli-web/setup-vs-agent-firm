@@ -68,29 +68,42 @@ HYPERLIQUID = FeeSchedule(
     ),
 )
 
-# Kraken Futures (multi-collateral perps PF_*), 30-day futures volume (USD). Note how LOW the
-# thresholds are vs Binance: the top tier (0 / 1 bp) needs only 100 M$/30 d — a book of our size
-# can own it. These are the global Kraken Futures rates; the EU (MiFID) offering may differ.
+# Kraken Futures perps (PF_*), standard schedule, 30-day volume (USD).
+# VERIFIED 2026-10-03 by the desk from the VPS (public GET /derivatives/api/v3/feeschedules).
+# Negative maker = rebate. Kraken also publishes "Incentive" schedules (rebates up to -1 bp
+# above 1 B$) and "Consumer" schedules at 25 bp maker AND taker (see KRAKEN_FUTURES_CONSUMER):
+# which one applies to Romain's account is only visible through the private API.
 # Do NOT confuse with Kraken *spot* fees (16-40 bps), which make spot useless for MFT.
 KRAKEN_FUTURES = FeeSchedule(
     venue="kraken_futures",
     window_days=30,
-    as_of="2025-snapshot",
+    as_of="2026-10-03 API",
+    verified=True,
     tiers=(
         FeeTier(name="K0", min_volume_usd=0, maker_bps=2.0, taker_bps=5.0),
-        FeeTier(name="K1", min_volume_usd=100e3, maker_bps=1.5, taker_bps=4.0),
-        FeeTier(name="K2", min_volume_usd=1 * _M, maker_bps=1.25, taker_bps=3.0),
-        FeeTier(name="K3", min_volume_usd=5 * _M, maker_bps=1.0, taker_bps=2.5),
-        FeeTier(name="K4", min_volume_usd=10 * _M, maker_bps=0.75, taker_bps=2.0),
-        FeeTier(name="K5", min_volume_usd=20 * _M, maker_bps=0.5, taker_bps=1.5),
-        FeeTier(name="K6", min_volume_usd=50 * _M, maker_bps=0.25, taker_bps=1.25),
-        FeeTier(name="K7", min_volume_usd=100 * _M, maker_bps=0.0, taker_bps=1.0),
+        FeeTier(name="K1", min_volume_usd=5 * _M, maker_bps=1.75, taker_bps=4.5),
+        FeeTier(name="K2", min_volume_usd=10 * _M, maker_bps=1.5, taker_bps=4.0),
+        FeeTier(name="K3", min_volume_usd=25 * _M, maker_bps=1.0, taker_bps=3.0),
+        FeeTier(name="K4", min_volume_usd=50 * _M, maker_bps=0.5, taker_bps=2.5),
+        FeeTier(name="K5", min_volume_usd=100 * _M, maker_bps=0.0, taker_bps=2.0),
+        FeeTier(name="K6", min_volume_usd=250 * _M, maker_bps=-0.3, taker_bps=1.75),
+        FeeTier(name="K7", min_volume_usd=1 * _B, maker_bps=-0.6, taker_bps=1.35),
     ),
+)
+
+# Kraken "Consumer" perp schedule (flat 25 bp maker and taker). If the account sits on it,
+# no MFT book is viable: the break-even IC exceeds anything public-flow signals can deliver.
+KRAKEN_FUTURES_CONSUMER = FeeSchedule(
+    venue="kraken_futures_consumer",
+    window_days=30,
+    as_of="2026-10-03 API",
+    verified=True,
+    tiers=(FeeTier(name="C0", min_volume_usd=0, maker_bps=25.0, taker_bps=25.0),),
 )
 
 EXECUTION_VENUE = "kraken_futures"
 
-SCHEDULES: dict[str, FeeSchedule] = {s.venue: s for s in (KRAKEN_FUTURES, BINANCE_UM, BYBIT, HYPERLIQUID)}
+SCHEDULES: dict[str, FeeSchedule] = {s.venue: s for s in (KRAKEN_FUTURES, KRAKEN_FUTURES_CONSUMER, BINANCE_UM, BYBIT, HYPERLIQUID)}
 
 
 def get_schedule(venue: str) -> FeeSchedule:

@@ -33,8 +33,8 @@ class _Strict(BaseModel):
 class FeeTier(_Strict):
     name: str = Field(min_length=1, max_length=32)
     min_volume_usd: float = Field(ge=0)
-    maker_bps: float = Field(ge=-5, le=10)  # negative = rebate
-    taker_bps: float = Field(ge=0, le=20)
+    maker_bps: float = Field(ge=-5, le=50)  # negative = rebate
+    taker_bps: float = Field(ge=0, le=50)
 
 
 class FeeSchedule(_Strict):

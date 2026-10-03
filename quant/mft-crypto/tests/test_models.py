@@ -8,10 +8,12 @@ from mft.models import BacktestConfig, DownloadRequest, FeeSchedule, FeeTier, St
 
 
 def test_fee_schedules_valid_and_lookup():
-    assert set(SCHEDULES) == {"kraken_futures", "binance_um", "bybit", "hyperliquid"}
+    assert set(SCHEDULES) == {"kraken_futures", "kraken_futures_consumer", "binance_um", "bybit", "hyperliquid"}
     k = get_schedule("kraken_futures")
-    assert k.tier_for_volume(0).name == "K0" and k.tier_for_volume(150e6).name == "K7"
-    assert k.tiers[-1].taker_bps == 1.0
+    assert k.verified and k.tier_for_volume(0).name == "K0" and k.tier_for_volume(150e6).name == "K5"
+    assert k.tiers[-1].taker_bps == 1.35 and k.tiers[-1].maker_bps == -0.6  # maker rebate
+    c = get_schedule("kraken_futures_consumer")
+    assert c.tiers[0].maker_bps == c.tiers[0].taker_bps == 25.0
     assert get_schedule("binance_um") is BINANCE_UM
     assert BINANCE_UM.tier_for_volume(0).name == "VIP0"
     assert BINANCE_UM.tier_for_volume(15e6).name == "VIP1"

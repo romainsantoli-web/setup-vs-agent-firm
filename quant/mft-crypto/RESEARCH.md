@@ -25,34 +25,44 @@ conservés comme point de comparaison ; les chiffres qui comptent sont ceux de c
 - un enregistreur Kraken Futures (L1 + trades, 10 perps) et un Binance tournent sur le VPS jusqu'au
   13/10. **Pas besoin de déployer un nouveau collecteur pour Kraken** : on lit ces données.
 
-**Barème Kraken Futures** (`mft/fees.py`, instantané non vérifié ; l'offre UE/MiFID peut différer) :
-taker 5 → 1 bp, maker 2 → 0 bp. Le palier haut est atteint dès **100 M$ sur 30 jours**, contre
-25 Md$ pour le VIP9 Binance. Les frais cessent d'être la contrainte ; **la profondeur devient la
-contrainte**.
+**Barème Kraken Futures perps, VÉRIFIÉ le 03/10 par le desk depuis le VPS** (API publique) :
 
-**IC combiné requis pour un Sharpe net ≥ 2** (10 perps, levier brut 3×, spread 3 bps, sélection
-adverse 2,5 bps mesurée, ADV 30 M$ ; `reports/tier_economics.md`) :
+| volume 30 j | < 5 M$ | ≥ 5 M$ | ≥ 10 M$ | ≥ 25 M$ | ≥ 50 M$ | ≥ 100 M$ | ≥ 250 M$ | ≥ 1 Md$ |
+|---|---|---|---|---|---|---|---|---|
+| maker (bp) | 2,00 | 1,75 | 1,50 | 1,00 | 0,50 | 0 | −0,30 | −0,60 |
+| taker (bp) | 5,00 | 4,50 | 4,00 | 3,00 | 2,50 | 2,00 | 1,75 | 1,35 |
+
+Il existe aussi des barèmes « Incentive » (rabais maker jusqu'à −1 bp au-delà de 1 Md$) et
+**« Consumer » à 25 bp maker ET taker**. Sur Consumer, l'IC de break-even à 1 h est d'environ
+0,53 : **aucun livre MFT n'est viable**. Il faut donc d'abord savoir lequel s'applique au compte de
+Romain, ce que seule l'API privée dit (le desk attend son accord direct pour l'interroger).
+
+Levier max affiché (public) : 100× BTC/ETH/SOL, 50× XRP/DOGE/ADA/LINK/LTC/SUI/ZEC. Le levier
+réellement autorisé à un particulier français via l'entité UE reste à lire sur le compte.
+
+**IC combiné requis pour un Sharpe net ≥ 2** (barème vérifié, 10 perps, levier brut 3×, spread
+3 bps, sélection adverse 2,5 bps mesurée, ADV 30 M$ ; `reports/tier_economics.md`) :
 
 | capital | horizon | taker | entrée maker | maker 2 jambes (borne haute) |
 |---|---|---|---|---|
-| 100 k$ | 15 min | 0,135 (K3) | 0,115 (K3) | 0,083 (K4) |
-| 100 k$ | 1 h | 0,088 (K4) | 0,078 (K4) | 0,063 (K4) |
-| 250 k$ | 1 h | 0,095 (K5) | 0,082 (K5) | 0,059 (K6) |
-| 1 M$ | 1 h | 0,129 (K6) | 0,099 (K6) | 0,054 (K7) |
+| 100 k$ | 15 min | 0,174 (K1) | 0,142 (K1) | 0,100 (K2) |
+| 100 k$ | 1 h | 0,112 (K1) | 0,098 (K1) | 0,072 (K2) |
+| 250 k$ | 1 h | 0,120 (K2) | 0,101 (K2) | 0,066 (K3) |
+| 1 M$ | 1 h | 0,144 (K4) | 0,107 (K4) | 0,054 (K5) |
 
 **Ce que ça change :**
-1. **L'impact domine.** À 250 k$, un clip fait 75 k$ sur un carnet de ~30 M$/jour, soit environ
-   3,7 bps par jambe. C'est plus que les frais au palier K5. Le coefficient d'impact (0,2, hypothèse)
-   est le premier paramètre à calibrer sur les données L1/L2 Kraken déjà enregistrées.
-2. **L'avantage maker disparaît presque** avec la sélection adverse mesurée. L'entrée passive ne
-   vaut que si le signal décide aussi *quand* poster, c'est-à-dire si les fills sur entrée
-   directionnelle ont un meilleur markout que les fills MM. À mesurer, pas à supposer.
-3. **Capacité : 100–250 k$** pour un livre directionnel sur 10 perps Kraken. Au-delà, l'IC requis
-   monte vite. Pour grossir, il faut plus de noms ou des horizons plus longs.
-4. **La cible de recherche** devient un IC combiné hors échantillon d'environ **0,08 à 1 h**. C'est
-   plus dur que sur Binance (0,06). Le meilleur levier de signal attendu est **Binance/Bybit →
-   Kraken** : Kraken suit le marché, et l'écart de prix résiduel à 1–15 min est une information
-   que nous lisons sans y trader.
+1. **Barre haute.** Les paliers réels démarrent à 5 M$ (et non 100 k$), donc le livre reste vers
+   K0–K2 : il faut un IC combiné d'environ **0,10–0,12 à 1 h** en taker / entrée maker. Avec des
+   signaux d'IC 0,03, c'est 12 à 16 signaux orthogonaux : irréaliste à court terme.
+2. **Le maker 2 jambes n'est pas crédible** : le desk vient de montrer sur 14 jours Kraken que 76 %
+   des fills passifs arrivent quand on est seul au niveau (le niveau va céder), avec −0,74 bp par
+   fill dans le meilleur cas même à frais nuls.
+3. **L'impact domine les frais** sur des carnets fins (~3,7 bps par jambe pour un clip de 75 k$).
+   Capacité : 100–250 k$.
+4. **Leviers réalistes**, par ordre : (a) écarter le risque « Consumer » (API privée) ;
+   (b) allonger l'horizon vers 2–8 h, où le coût fixe pèse 2 à 3 fois moins par rapport à σ_h ;
+   (c) négocier un barème Incentive ou VIP avec Kraken ; (d) le signal Binance/Bybit → Kraken
+   (étude validée par Romain, en file chez le desk).
 5. Funding Kraken **horaire** (le simulateur et le banc synthétique paient désormais à chaque heure).
 
 **À vérifier avant tout trading :** barème et levier maximal accessibles via l'entité UE de Kraken
