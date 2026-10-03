@@ -57,25 +57,41 @@ def daily_ic(signal: pd.Series, fwd: pd.Series) -> pd.Series:
     return prod.groupby(_days(df.index)).mean()
 
 
+def _deoverlap(values: np.ndarray, threshold: float, min_gap: int) -> np.ndarray:
+    keep, last = [], -10**12
+    for i in np.flatnonzero(np.abs(values) > threshold):
+        if i - last >= min_gap:
+            keep.append(i)
+            last = i
+    return np.asarray(keep, dtype=int)
+
+
 def event_study(signal: pd.Series, fwd: pd.Series, threshold: float, min_gap: int = 1) -> dict[str, float]:
     """Mean signed forward return (bps) after sparse events |signal| > threshold.
 
     Rank IC is the wrong metric for signals that are zero most of the time (liquidations):
-    measure the conditional mean move per event instead, de-overlapped by `min_gap` bars.
+    measure the conditional mean move per event instead. Events are de-overlapped *per symbol*
+    in bars (`min_gap`), then events sharing a timestamp across symbols (market-wide cascades)
+    are averaged into one cluster before the t-stat — otherwise one cascade counts N times.
     """
     df = pd.DataFrame({"s": signal, "f": fwd}).dropna()
-    hit = np.flatnonzero(np.abs(df["s"].to_numpy()) > threshold)
-    keep, last = [], -10**12
-    for i in hit:
-        if i - last >= min_gap:
-            keep.append(i)
-            last = i
-    if len(keep) < 3:
-        return {"n_events": len(keep), "mean_bps": np.nan, "t": np.nan}
-    signed = np.sign(df["s"].to_numpy()[keep]) * df["f"].to_numpy()[keep]
-    sd = signed.std(ddof=1)
-    return {"n_events": len(keep), "mean_bps": float(signed.mean()),
-            "t": float(signed.mean() / sd * math.sqrt(len(keep))) if sd > 0 else np.nan}
+    groups = df.groupby(level=1, sort=False) if isinstance(df.index, pd.MultiIndex) else [(None, df)]
+    ts_list, vals = [], []
+    for _, g in groups:
+        idx = _deoverlap(g["s"].to_numpy(), threshold, min_gap)
+        if len(idx):
+            ts = g.index.get_level_values(0) if isinstance(g.index, pd.MultiIndex) else g.index
+            ts_list.append(np.asarray(ts)[idx])
+            vals.append(np.sign(g["s"].to_numpy()[idx]) * g["f"].to_numpy()[idx])
+    if not vals:
+        return {"n_events": 0, "mean_bps": np.nan, "t": np.nan}
+    clusters = pd.Series(np.concatenate(vals)).groupby(np.concatenate(ts_list)).mean().to_numpy()
+    n = len(clusters)
+    if n < 3:
+        return {"n_events": n, "mean_bps": np.nan, "t": np.nan}
+    sd = clusters.std(ddof=1)
+    return {"n_events": n, "mean_bps": float(clusters.mean()),
+            "t": float(clusters.mean() / sd * math.sqrt(n)) if sd > 0 else np.nan}
 
 
 def ic_summary(ic: pd.Series) -> dict[str, float]:

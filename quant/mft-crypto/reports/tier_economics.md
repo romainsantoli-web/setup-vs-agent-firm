@@ -62,7 +62,7 @@
 
 ### horizon 5m, taker
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 14.28 | 1.64 | inf | 0.00 | 0 | 0 | 0 | yes | 0 | 0% | 0.00 |
 | VIP1 | 12.28 | 1.64 | inf | 0.00 | 0 | 0 | 15.0M | no | 0 | 0% | 0.00 |
@@ -77,7 +77,7 @@
 
 ### horizon 5m, maker_entry
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 9.64 | 1.64 | inf | 0.00 | 0 | 0 | 0 | yes | 0 | 0% | 0.00 |
 | VIP1 | 8.24 | 1.64 | inf | 0.00 | 0 | 0 | 15.0M | no | 0 | 0% | 0.00 |
@@ -92,7 +92,7 @@
 
 ### horizon 5m, maker_both
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 5.00 | 1.64 | inf | 0.00 | 0 | 0 | 0 | yes | 0 | 0% | 0.00 |
 | VIP1 | 4.20 | 1.64 | 4.00 | 0.36 | 0 | 2.0M | 15.0M | no | 433 | 0% | 0.08 |
@@ -107,7 +107,7 @@
 
 ### horizon 15m, taker
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 14.28 | 1.64 | inf | 0.00 | 0 | 0 | 0 | yes | 0 | 0% | 0.00 |
 | VIP1 | 12.28 | 1.64 | inf | 0.00 | 0 | 0 | 15.0M | no | 0 | 0% | 0.00 |
@@ -122,7 +122,7 @@
 
 ### horizon 15m, maker_entry
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 9.64 | 1.64 | inf | 0.00 | 0 | 0 | 0 | yes | 0 | 0% | 0.00 |
 | VIP1 | 8.24 | 1.64 | inf | 0.00 | 0 | 0 | 15.0M | no | 0 | 0% | 0.00 |
@@ -137,7 +137,7 @@
 
 ### horizon 15m, maker_both
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 | 5.00 | 1.64 | 2.95 | 1.05 | 4 | 32.9M | 0 | yes | 21.1k | 2% | 0.56 |
 | VIP1 | 4.20 | 1.64 | 2.58 | 1.21 | 12 | 103.9M | 15.0M | yes | 76.2k | 8% | 1.15 |
@@ -152,7 +152,7 @@
 
 ### horizon 1h, taker
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 14.28 | 1.64 | 4.00 | 1.52 | 0 | 273.6k | 0 | yes | 254 | 0% | 0.04 |
 | VIP1 | 12.28 | 1.64 | 3.53 | 1.84 | 0 | 1.8M | 15.0M | no | 2.0k | 0% | 0.12 |
@@ -167,7 +167,7 @@
 
 ### horizon 1h, maker_entry
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 **←** | 9.64 | 1.64 | 2.88 | 2.21 | 1 | 10.5M | 0 | yes | 14.0k | 1% | 0.33 |
 | VIP1 | 8.24 | 1.64 | 2.53 | 2.40 | 3 | 30.0M | 15.0M | yes | 43.8k | 4% | 0.61 |
@@ -182,7 +182,7 @@
 
 ### horizon 1h, maker_both
 
-| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
+| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | VIP0 | 5.00 | 1.64 | 1.75 | 3.05 | 23 | 207.7M | 0 | yes | 385.8k | 39% | 2.05 |
 | VIP1 | 4.20 | 1.64 | 1.55 | 3.21 | 35 | 314.0M | 15.0M | yes | 613.0k | 61% | 2.65 |

@@ -72,7 +72,7 @@ def book_tables(a: Args, capital: float, ic: float, horizon: str, execution: str
                         n_symbols=a.n_symbols, n_independent=a.n_independent, capital_usd=capital,
                         gross_leverage=a.gross_leverage, execution=execution, spread_bps=a.spread_bps,
                         adverse_bps=a.spread_bps / 2, fill_rate=a.fill_rate)
-    lines = ["| tier | RT cost (bps) | impact/jambe | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |",
+    lines = ["| tier | RT cost (bps) | impact/jambe taker | k | net edge (bps) | trades/day | volume/window | tier threshold | self-sustaining | PnL/yr | return | Sharpe |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in res["table"]:
         mark = " **←**" if r["tier"] == res["reached"] else ""

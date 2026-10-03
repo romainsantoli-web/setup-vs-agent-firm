@@ -48,6 +48,23 @@ def test_event_study():
     assert res["n_events"] == 400 and res["mean_bps"] > 2 and res["t"] > 4
     few = v.event_study(pd.Series(np.zeros(100)), pd.Series(np.ones(100)), threshold=1)
     assert few["n_events"] == 0 and math.isnan(few["t"])
+    two = v.event_study(pd.Series([5.0, 0, 0, 5.0]), pd.Series([1.0, 0, 0, 2.0]), threshold=1)
+    assert two["n_events"] == 2 and math.isnan(two["t"])
+
+
+def test_event_study_panel_deoverlaps_per_symbol_and_clusters_cascades():
+    """Regression: on an interleaved (ts, symbol) panel the gap must count bars of the same
+    symbol, and simultaneous events across symbols are one cluster (null test caught t=4.4)."""
+    ts = pd.date_range("2025-01-01", periods=200, freq="1min", tz="UTC")
+    syms = ["A", "B", "C"]
+    idx = pd.MultiIndex.from_product([ts, syms])
+    s = pd.Series(0.0, index=idx)
+    f = pd.Series(np.random.default_rng(0).standard_normal(len(idx)), index=idx)
+    for k in range(0, 200, 20):  # market-wide cascade every 20 bars, lasting 10 bars, all symbols
+        for j in range(10):
+            s.loc[(ts[k + j], slice(None))] = 5.0
+    res = v.event_study(s, f, threshold=1, min_gap=15)
+    assert res["n_events"] == 10  # 10 cascades, not 10 x 3 symbols x several rows
 
 
 def test_point_in_time_detection():
