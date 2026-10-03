@@ -80,6 +80,63 @@ désormais un levier brut supérieur à 10×.
 pour le profil de Romain (le levier brut de 3× est une hypothèse), sémantique du champ `side` des
 liquidations dans le flux `trade` Kraken, unités de `relative_funding_rate`.
 
+### 0.bis Coûts réels mesurés sur Kraken (03/10, desk, fenêtre de design ≤ 08/10) — **verdict**
+
+**Frais du compte de Romain : barème standard K0, 2 bp maker / 5 bp taker.** Valeurs lues sur ses
+vrais fills (flux privé `fills` des runs v10 : 86 fills maker à 2,000 bp, 86 fills taker à
+5,000 bp), sans aucun appel à l'API. Ce n'est pas le barème « Consumer ».
+
+| perp | spread médian | volume/jour | impact 25 k$ | 75 k$ | 150 k$ |
+|---|---|---|---|---|---|
+| XBT | 0,12 bp | 636 M$ | 0,41 | 0,80 | 1,09 |
+| ETH | 0,37 | 107 M$ | 1,13 | 1,74 | 2,18 |
+| SOL | 0,85 | 60 M$ | 3,07 | 4,08 | 4,87 |
+| XRP | 1,29 | 34 M$ | 4,21 | 5,67 | 6,62 |
+| DOGE / ADA / LINK / LTC / SUI / ZEC | 2,0–5,1 | 2,7–44 M$ | non mesuré | | |
+
+- **Fills passifs réels** (87) : markout −0,66 / −1,03 / −1,77 / −1,05 bp à 1 s / 10 s / 1 min /
+  5 min. Avec les 2 bp de frais maker, environ **−3 bp net par fill passif**. Ce sont des fills de
+  market making ; une entrée passive déclenchée par un signal n'a pas encore été mesurée.
+- **Lead-lag Binance → Kraken** (pré-enregistré, correction BH sur 12 tests, placebos) : seul
+  l'écart contemporain à 1 min est significatif, IC **+0,037** en design (t = 2,08 sur 3 jours) et
+  **+0,040** en test (p = 0,002). Rien à 5 et 15 min. **Il n'est pas tradable seul** : l'IC requis
+  serait de 1,49 à 1 min. Sur le décile le plus fort, le gain brut est de +0,38 bp pour environ
+  12,5 bp de coût. Il garde une utilité : **choisir le moment d'entrée** des trades déclenchés par
+  d'autres signaux.
+- **Liquidations** : `record_kraken_v2` n'écrit pas le champ `type`, donc elles ne sont pas
+  séparées des trades (~121 étiquetables a posteriori sur 01–02/10). Pour la suite, ajouter `type`
+  au prochain enregistreur, avec l'accord de Romain puisque `~/mm` est son dossier. Mon
+  collecteur (`mft/collector.py`) le capture déjà.
+
+**IC requis par perp** (clip de 75 k$, coûts mesurés, `mft/kraken_costs.py`) :
+
+| perp | exécution | coût AR | break-even k=1 : 1 h / 4 h / 24 h | IC pour Sharpe 2, un seul perp : 1 h / 4 h / 24 h |
+|---|---|---|---|---|
+| XBT | taker | 11,6 bp | 0,142 / 0,071 / 0,029 | 0,134 / 0,116 / 0,150 |
+| XBT | entrée maker | 9,3 bp | 0,114 / 0,057 / 0,023 | 0,115 / 0,104 / 0,144 |
+| ETH | entrée maker | 10,2 bp | 0,097 / 0,048 / 0,020 | 0,103 / 0,096 / 0,140 |
+| SOL | entrée maker | 12,6 bp | 0,097 / 0,048 / 0,020 | 0,103 / 0,096 / 0,140 |
+| XRP | taker | 21,3 bp | 0,164 / 0,082 / 0,033 | 0,147 / 0,125 / 0,155 |
+
+Lecture : allonger l'horizon divise l'IC de break-even, mais le Sharpe exige aussi de la
+*breadth* (à 24 h, un seul perp ne fait que 365 paris par an). Pour ETH en entrée maker, l'IC
+requis pour un Sharpe de 2 vaut **0,096 (1 pari indépendant) → 0,080 (2) → 0,068 (4) à 4 h**.
+
+**Verdict de recherche :**
+1. **10 s – 15 min sur Kraken au palier K0 : fermé.** C'est mesuré, pas supposé. Le MM perd
+   (−0,74 bp par fill au mieux même à frais nuls), les fills passifs coûtent environ 3 bp net, et
+   le meilleur signal sub-horaire (Binance → Kraken) est environ 30 fois trop petit.
+2. **La zone viable est 1 h – 4 h**, sur 3–4 perps liquides (XBT, ETH, SOL ; XRP en limite).
+   Elle demande un IC combiné de **0,07–0,10**, avec une breadth gagnée par une construction
+   **cross-sectionnelle** (long/short relatif entre XBT, ETH et SOL, neutre au facteur marché).
+   Concrètement : 4 à 6 signaux décorrélés d'IC 0,03–0,05 à 4 h. Candidats : funding et base
+   cross-venue, momentum et reversal relatifs, OI et levier, liquidations (une fois capturées),
+   saisonnalité de session. Le lead-lag sert à choisir le moment d'entrée.
+3. **Exclure les alts dont l'aller-retour dépasse ~15 bp** (DOGE, ADA, LINK, LTC, SUI, ZEC) tant
+   que leur profondeur n'est pas mesurée.
+4. La décision d'**étendre l'horizon au-delà de 1 h** sort du mandat initial (10 s – 1 h) :
+   elle revient à Romain.
+
 ---
 
 ## 1. Verdict en une page
