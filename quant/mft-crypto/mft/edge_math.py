@@ -63,15 +63,30 @@ def policy_stats(ic: float, sig_h_bps: float, k: float, cost_rt_bps: float, hori
 
 def best_threshold(ic: float, sig_h_bps: float, cost_rt_bps: float, horizon_s: float,
                    n_independent: float = 1.0, grid: np.ndarray | None = None) -> dict[str, float]:
-    """Threshold maximizing annualized Sharpe (ties -> higher k = fewer trades)."""
+    """Threshold maximizing annualized Sharpe; if no threshold is profitable, do not trade."""
     grid = np.linspace(0.0, 4.0, 161) if grid is None else grid
-    best: dict[str, float] | None = None
+    best = {"k": float("inf"), "trade_prob": 0.0, "gross_edge_bps": 0.0, "net_edge_bps": 0.0,
+            "trades_per_year": 0.0, "sharpe": 0.0}
     for k in grid:
         st = policy_stats(ic, sig_h_bps, float(k), cost_rt_bps, horizon_s, n_independent)
-        if best is None or st["sharpe"] > best["sharpe"] + 1e-12:
+        if st["sharpe"] > best["sharpe"] + 1e-12:
             best = st
-    assert best is not None
     return best
+
+
+def ic_for_sharpe(target_sharpe: float, sig_h_bps: float, cost_rt_bps: float, horizon_s: float,
+                  n_independent: float = 1.0, hi: float = 1.0) -> float:
+    """Smallest combined IC whose optimal threshold policy reaches `target_sharpe` (bisection)."""
+    lo = 0.0
+    if best_threshold(hi, sig_h_bps, cost_rt_bps, horizon_s, n_independent)["sharpe"] < target_sharpe:
+        return float("nan")
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        if best_threshold(mid, sig_h_bps, cost_rt_bps, horizon_s, n_independent)["sharpe"] >= target_sharpe:
+            hi = mid
+        else:
+            lo = mid
+    return hi
 
 
 def breakeven_ic(sig_h_bps: float, cost_rt_bps: float, k: float) -> float:
