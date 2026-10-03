@@ -111,3 +111,26 @@ def get_schedule(venue: str) -> FeeSchedule:
         return SCHEDULES[venue]
     except KeyError:
         raise ValueError(f"unknown venue {venue!r}; known: {sorted(SCHEDULES)}") from None
+
+
+# Kraken derivatives margin schedule for EEA clients (MiFID II), checked 2026-10-03 on Kraken's
+# support pages ("Derivatives margin schedule and maximum leverage for EEA clients"):
+# tier -> (initial margin, maintenance margin). Leverage falls as the position grows; the tier
+# thresholds depend on the asset class (class A: tier II only above ~30 M$ of position), and
+# class F contracts START at tier II (5x max). The 50-100x offered elsewhere is NOT available
+# from France. Retail and professional clients share this schedule.
+KRAKEN_EEA_MARGIN_TIERS: dict[str, tuple[float, float]] = {
+    "I": (0.10, 0.05),
+    "II": (0.20, 0.10),
+    "III": (0.30, 0.15),
+    "IV": (0.50, 0.25),
+}
+
+
+def kraken_eea_max_leverage(asset_class: str = "A", tier: str = "I") -> float:
+    """Max leverage for an EEA client: 1 / initial margin; class F starts at tier II."""
+    if asset_class.upper() == "F" and tier == "I":
+        tier = "II"
+    if tier not in KRAKEN_EEA_MARGIN_TIERS:
+        raise ValueError(f"unknown margin tier {tier!r}")
+    return round(1.0 / KRAKEN_EEA_MARGIN_TIERS[tier][0], 2)

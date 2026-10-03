@@ -37,8 +37,19 @@ Il existe aussi des barèmes « Incentive » (rabais maker jusqu'à −1 bp au-d
 0,53 : **aucun livre MFT n'est viable**. Il faut donc d'abord savoir lequel s'applique au compte de
 Romain, ce que seule l'API privée dit (le desk attend son accord direct pour l'interroger).
 
-Levier max affiché (public) : 100× BTC/ETH/SOL, 50× XRP/DOGE/ADA/LINK/LTC/SUI/ZEC. Le levier
-réellement autorisé à un particulier français via l'entité UE reste à lire sur le compte.
+**Levier accessible depuis la France (vérifié par Romain le 03/10, pages officielles Kraken
+EEA) : 10× maximum** (MiFID II, tous clients EEE, retail comme pro ; les 50–100× affichés ailleurs ne
+sont pas accessibles). Grille EEA : palier I 10 %/5 % (10×), II 20 %/10 % (5×), III 30 %/15 %
+(3,33×), IV 50 %/25 % (2×). Pour la classe A, le palier II ne commence qu'au-delà d'environ 30 M$ de
+position. **Les contrats de classe F démarrent au palier II (5×)** : la liste est à lire contrat par
+contrat dans les spécifications EEA. À 10×, la liquidation survient sur un mouvement adverse
+d'environ 5 %.
+→ **Le levier n'est pas la contrainte du livre** : 3× brut réparti sur 10 positions reste loin des
+deux plafonds et de la marge de maintien. Règle de risque retenue : levier ≤ 5× par position
+(couvre la classe F, au moins 2× de marge avant la maintenance), levier brut du livre ≤ 3×. Plus de
+levier n'aide pas : l'impact croît avec la taille des clips, donc le rendement monte mais pas le
+Sharpe. Encodé dans `mft/fees.py` (`kraken_eea_max_leverage`) ; `tier_economics.py` refuse
+désormais un levier brut supérieur à 10×.
 
 **IC combiné requis pour un Sharpe net ≥ 2** (barème vérifié, 10 perps, levier brut 3×, spread
 3 bps, sélection adverse 2,5 bps mesurée, ADV 30 M$ ; `reports/tier_economics.md`) :

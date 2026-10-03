@@ -77,3 +77,12 @@ def test_study_config():
         StudyConfig(horizons=(0,))
     with pytest.raises(ValidationError):
         StudyConfig(out_path="../../x.md")
+
+
+def test_kraken_eea_leverage_caps():
+    from mft.fees import kraken_eea_max_leverage
+    assert kraken_eea_max_leverage("A") == 10.0
+    assert kraken_eea_max_leverage("F") == 5.0  # class F starts at tier II
+    assert kraken_eea_max_leverage("A", "IV") == 2.0
+    with pytest.raises(ValueError):
+        kraken_eea_max_leverage("A", "V")

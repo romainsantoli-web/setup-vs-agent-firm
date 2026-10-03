@@ -32,7 +32,9 @@ class Args(BaseModel):
     n_independent: float = Field(default=4.0, gt=0, le=200)
     annual_vol: float = Field(default=0.70, gt=0, le=5)
     spread_bps: float = Field(default=3.0, ge=0, le=50)
-    gross_leverage: float = Field(default=3.0, gt=0, le=20)
+    # Book-level gross leverage. Kraken EEA caps a position at 10x (5x for class F contracts):
+    # 3x gross over 10 slots stays far from both caps and from maintenance margin.
+    gross_leverage: float = Field(default=3.0, gt=0, le=10)
     fill_rate: float = Field(default=0.6, gt=0, le=1)
     # Measured by the desk: Romain's real passive Kraken fills marked out at -2.6 to -3 bp.
     adverse_bps: float = Field(default=2.5, ge=0, le=50)
