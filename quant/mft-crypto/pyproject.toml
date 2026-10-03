@@ -1,0 +1,17 @@
+[project]
+name = "mft-crypto"
+version = "0.1.0"
+description = "Mid-frequency crypto-derivatives research pipeline: signals, validation, cost model, fee-tier economics"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26", "pandas>=2.1", "scipy>=1.11", "pydantic>=2.5"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "pyarrow>=15"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=mft --cov-branch --cov-report=term-missing --cov-fail-under=80"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
