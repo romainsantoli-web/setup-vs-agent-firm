@@ -1,4 +1,4 @@
-<title>Crush ta Rage</title>
+<title>Casse Tout</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,8 +143,8 @@ button{font:inherit;color:inherit}
   <!-- HOME -->
   <section id="scrHome" class="scr">
     <div>
-      <h1 class="logo">CRUSH<br>TA RAGE</h1>
-      <p class="tag">Écrase des bonbons râleurs. Pas tes collègues.</p>
+      <h1 class="logo">CASSE<br>TOUT</h1>
+      <p class="tag">La salle de défoulement dans ta poche. Zéro facture.</p>
     </div>
     <div id="homeEvent" class="event" hidden>
       <div><b>🎃 Citrouilles Maudites</b><span>Événement Halloween · encore <span id="homeEventLeft">--</span></span></div>
@@ -152,7 +152,7 @@ button{font:inherit;color:inherit}
     </div>
     <div class="modes">
       <button class="mode" data-go="map"><canvas data-icon="0" width="112" height="112"></canvas><div><b>Niveaux</b><span>12 niveaux. Vies illimitées, bonus gagnés en jouant.</span></div></button>
-      <button class="mode" data-go="rage"><canvas data-icon="3" width="112" height="112"></canvas><div><b>Défouloir</b><span>Écris ce qui t’énerve, puis écrase-le. Sans limite de coups.</span></div></button>
+      <button class="mode" data-go="rage"><canvas data-icon="3" width="112" height="112"></canvas><div><b>Défouloir</b><span>Écris ce qui t’énerve, puis réduis-le en miettes. Sans limite de coups.</span></div></button>
       <button class="mode" data-go="daily"><canvas data-icon="4" width="112" height="112"></canvas><div><b>Défi du jour</b><span>La même grille pour tout le monde. Partage ton score.</span></div></button>
       <button class="mode" data-go="shop"><canvas data-icon="5" width="112" height="112"></canvas><div><b>Boutique</b><span>Skins qui changent chaque jour. Uniquement cosmétiques.</span></div></button>
     </div>
@@ -192,7 +192,7 @@ button{font:inherit;color:inherit}
       <div class="stat"><small>Score</small><strong id="hScore">0</strong></div>
       <div class="stat" id="hGoalBox"><small id="hGoalLabel">Objectif</small><div class="goalrow"><canvas id="goalIcon" width="48" height="48" hidden></canvas><strong id="hGoal">0</strong></div><div class="prog"><i id="hProg"></i></div></div>
     </div>
-    <div id="boardWrap"><canvas id="board" width="400" height="400" aria-label="Plateau de jeu : fais glisser un bonbon vers un voisin pour aligner 3 bonbons identiques"></canvas></div>
+    <div id="boardWrap"><canvas id="board" width="400" height="400" aria-label="Plateau de jeu : fais glisser un objet vers un voisin pour aligner 3 objets identiques et les casser"></canvas></div>
     <div id="comment" aria-live="polite"></div>
     <div class="tools" id="tools">
       <button class="tool" id="tHammer" type="button">🔨 Marteau ×3</button>
@@ -202,7 +202,7 @@ button{font:inherit;color:inherit}
       <button class="tool" id="tFree" type="button">🔨 Marteau infini : non</button>
       <div class="mega">
         <div class="ragebar"><i id="rageFill"></i></div>
-        <button class="btn" id="megaBtn" type="button" disabled>MÉGA CRUSH 💥</button>
+        <button class="btn" id="megaBtn" type="button" disabled>MÉGA CASSE 💥</button>
       </div>
     </div>
   </section>
@@ -259,14 +259,14 @@ function persist() { try { localStorage.setItem('ctr-v1', JSON.stringify(save));
 const COLORS = ['#ff4f6d', '#ff9f2e', '#ffe14d', '#3ee6b0', '#4fb3ff', '#b46bff'];
 const DARK = ['#b5203f', '#c46a08', '#c9a400', '#139a72', '#1d74c4', '#7a2fd0'];
 const SKINS = [
-  { id: 'grincheux', name: 'Bonbons Grincheux', price: 0, desc: 'Le classique. Ils râlent tout le temps.' },
+  { id: 'grincheux', name: 'Objets Râleurs', price: 0, desc: 'Assiettes, vases, écrans… Ils râlent, tu casses.' },
   { id: 'halloween', name: 'Citrouilles Maudites', price: 1.99, event: true, emoji: ['🎃', '👻', '💀', '🦇', '🕷️', '🧟'], desc: 'Édition Halloween. Disparaît le 31 octobre à minuit.' },
-  { id: 'legumes', name: 'Légumes Rageux', price: 0.99, emoji: ['🥦', '🥕', '🍆', '🌶️', '🧅', '🥔'], desc: 'Enfin une raison de manger tes légumes : les écraser.' },
-  { id: 'drama', name: 'Emojis Dramatiques', price: 1.49, emoji: ['😭', '😡', '🤡', '😱', '🥴', '😤'], desc: 'Ils en font des tonnes à chaque explosion.' },
+  { id: 'bureau', name: 'Bureau Infernal', price: 1.49, emoji: ['🖨️', '💻', '📠', '☎️', '📎', '🗂️'], desc: 'L’open space, enfin à ta merci.' },
+  { id: 'mamie', name: 'Vaisselle de Mamie', price: 0.99, emoji: ['🍽️', '🫖', '🍷', '🥣', '☕', '🏺'], desc: 'Le service du dimanche. Mamie n’en saura rien.' },
   { id: 'messageA', name: 'Message de A', price: 1.99, emoji: ['🎭', '💌', '📱', '🗝️', '🖤', '🕶️'], desc: 'Quelqu’un commente tes coups. Signé : A.' },
-  { id: 'lundi', name: 'Lundi Matin', price: 0.99, emoji: ['☕', '⏰', '📧', '🚌', '💼', '🥱'], desc: 'Écrase le réveil, les mails et le bus en retard.' },
-  { id: 'chats', name: 'Chats Vexés', price: 1.49, emoji: ['😾', '🐈', '🐟', '🧶', '📦', '🐾'], desc: 'Ils te jugent. Ils ont raison.' },
-  { id: 'fastfood', name: 'Fast-food Furieux', price: 0.99, emoji: ['🍔', '🍟', '🌭', '🍕', '🌮', '🥤'], desc: 'Zéro calorie, 100 % défoulement.' }
+  { id: 'lundi', name: 'Lundi Matin', price: 0.99, emoji: ['☕', '⏰', '📧', '🚌', '💼', '🥱'], desc: 'Casse le réveil, les mails et le bus en retard.' },
+  { id: 'kitsch', name: 'Déco Kitsch', price: 1.49, emoji: ['🪩', '🗿', '🪴', '🕯️', '🧸', '🖼️'], desc: 'Tous les cadeaux moches que tu n’as jamais osé jeter.' },
+  { id: 'electro', name: 'Électroménager Rebelle', price: 0.99, emoji: ['📺', '🧺', '🔌', '🧹', '⏰', '🔦'], desc: 'Ils tombent en panne exprès. Vengeance.' }
 ];
 const SKIN = Object.fromEntries(SKINS.map(s => [s.id, s]));
 const LEVELS = [
@@ -283,15 +283,15 @@ const LEVELS = [
   { moves: 22, colors: 6, goal: { k: 'score', n: 5000 } },
   { moves: 20, colors: 6, goal: { k: 'collect', t: 2, n: 28 } }
 ];
-const SCREAMS = ['AÏE !', 'NOOON', 'Pas le visage !', 'Adieu monde cruel', 'J’avais une famille…', 'Ça chatouille', 'Pas avant mon café !', 'Je reviendrai…', 'Maman ?', 'Ouch.', 'Encore ?!', 'Trop sucré pour mourir', 'Je porte plainte !', 'Pourquoi moi ?'];
-const COMBOS = ['Combo x{n} ! Ton psy serait fier.', 'x{n} ! Respire, Jean-Michel.', 'x{n} ! Le bonbon ne t’avait rien fait.', 'x{n} ! C’est plus du jeu, c’est de la thérapie.', 'x{n} ! Les voisins ont entendu.', 'x{n} ! Lâche ta rage, champion.'];
-const A_LINES = ['Joli combo. Je t’observe. — A', 'Tu crois que personne ne voit tes coups ratés ? — A', 'Je sais ce que tu as fait au bonbon rouge. — A'];
+const SCREAMS = ['CRAC !', 'Pas ma garantie !', 'J’étais en promo…', 'Je coûtais 12 € !', 'Mon écran !', 'Bourrage papier… définitif.', 'Mamie va te tuer', 'Je suis fragile, ok ?', 'Adieu monde cruel', 'Pas le visage !', 'Encore ?!', 'J’avais 2 % de batterie…', 'Je porte plainte !', 'Pourquoi moi ?'];
+const COMBOS = ['Combo x{n} ! Ton psy serait fier.', 'x{n} ! Respire, Jean-Michel.', 'x{n} ! La facture va piquer.', 'x{n} ! C’est plus du jeu, c’est de la thérapie.', 'x{n} ! Les voisins ont entendu.', 'x{n} ! Même la salle de rage est jalouse.'];
+const A_LINES = ['Joli combo. Je t’observe. — A', 'Tu crois que personne ne voit tes coups ratés ? — A', 'Je sais ce que tu as fait à l’assiette rouge. — A'];
 const NOPES = ['Nope.', 'Même pas en rêve.', 'Ça ne s’aligne pas, champion.', 'Essaie encore.'];
-const WINS = ['Victoire ! Les bonbons portent plainte.', 'Gagné ! Ta maman serait fière. Ou inquiète.', 'Niveau terminé, dignité intacte.', 'Bravo ! Le sucre a perdu.'];
-const LOSES = ['Perdu. Même ta plante verte aurait fait mieux.', 'Les bonbons ont gagné la bataille. Pas la guerre.', 'Défaite. On dira que c’était l’échauffement.', 'Raté. Mais avec panache. Enfin, presque.'];
+const WINS = ['Tout est cassé. Mission accomplie.', 'Gagné ! Ta maman serait fière. Ou inquiète.', 'Niveau terminé, dignité intacte. Vaisselle, moins.', 'Bravo ! Ton assurance ne couvre pas ça.'];
+const LOSES = ['Perdu. Même ta plante verte aurait fait mieux.', 'Les objets ont gagné la bataille. Pas la guerre.', 'Défaite. On dira que c’était l’échauffement.', 'Raté. Mais avec panache. Enfin, presque.'];
 const BOSS_LINES = ['Aïe ! Pas le visage !', 'C’est tout ce que t’as ?', 'Je vais le dire à tout le monde !', 'Ok ok… ça pique.', 'Tu me le paieras !', 'Arrête, j’ai une famille !', 'Je suis inévitable.', 'Même pas mal. Si, un peu.'];
-const EPITAPHS = ['Ici repose {X}. Personne ne le regrettera.', '{X} a été écrasé. Le monde respire mieux.', 'RIP {X}. Cause du décès : toi.', '{X} ne t’embêtera plus. Du moins aujourd’hui.'];
-const PRESETS = ['Lundi', 'Mon réveil', 'Les bouchons', 'Ma box internet', 'Les réunions', 'Le wifi', 'Mes impôts', 'La pluie'];
+const EPITAPHS = ['Ici repose {X}. Personne ne le regrettera.', '{X} a été réduit en miettes. Le monde respire mieux.', 'RIP {X}. Cause du décès : toi.', '{X} ne t’embêtera plus. Du moins aujourd’hui.'];
+const PRESETS = ['Lundi', 'L’imprimante', 'Mon réveil', 'Les bouchons', 'Ma box internet', 'Les réunions', 'Mes impôts', 'La pluie'];
 const ADS = [['Ce jeu ressemble vraiment à sa pub.', 'Incroyable, non ?'], ['Achète un canapé.', 'Ou pas. On n’est pas ta mère.'], ['Ici, une vraie régie afficherait une pub de 5 secondes.', 'C’est ce qui finance les serveurs.']];
 
 /* ---------- Son (synthétisé, démarre au premier toucher) ---------- */
@@ -310,17 +310,21 @@ const sfx = (() => {
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .02);
   }
-  function noise(dur, vol = .32) {
+  function noise(dur, vol = .32, type = 'lowpass', freq = 900) {
     const c = a(); if (!c) return;
     const b = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
     const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-    s.buffer = b; f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = vol;
+    s.buffer = b; f.type = type; f.frequency.value = freq; g.gain.value = vol;
     s.connect(f); f.connect(g); g.connect(c.destination); s.start();
   }
   return {
     unlock: () => a(),
-    pop: n => { const f = 420 * Math.pow(1.12, Math.min(n, 10)); tone(f, f * 1.8, .12); },
+    shatter: n => {
+      noise(.24, .3, 'highpass', 2200);
+      const base = 2200 * Math.pow(1.08, Math.min(n, 8));
+      for (let i = 0; i < 3; i++) setTimeout(() => tone(base + Math.random() * 2200, base * .8, .09, 'sine', .05), 20 + i * 40);
+    },
     boom: () => { noise(.45); tone(140, 40, .4, 'sine', .28); },
     nope: () => tone(300, 120, .25, 'sawtooth', .07),
     squeak: () => tone(900, 1400, .08, 'square', .04),
@@ -330,61 +334,107 @@ const sfx = (() => {
   };
 })();
 
-/* ---------- Dessin des bonbons ---------- */
+/* ---------- Dessin des objets ---------- */
 function rr(c, x, y, w, h, r) { c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); }
 function poly(c, n, R, rot, dy = 0) { for (let i = 0; i < n; i++) { const an = rot + i * 2 * Math.PI / n, px = Math.cos(an) * R, py = Math.sin(an) * R + dy; i ? c.lineTo(px, py) : c.moveTo(px, py); } }
-function shape(c, t, r) {
-  c.beginPath();
-  switch (t) {
-    case 0: c.arc(0, 0, r, 0, Math.PI * 2); break;
-    case 1: rr(c, -r * .92, -r * .92, r * 1.84, r * 1.84, r * .42); break;
-    case 2: poly(c, 3, r * 1.2, -Math.PI / 2, r * .14); break;
-    case 3: poly(c, 4, r * 1.14, -Math.PI / 2); break;
-    case 4: poly(c, 6, r * 1.06, 0); break;
-    default: c.ellipse(0, 0, r * 1.1, r * .84, 0, 0, Math.PI * 2);
-  }
-  c.closePath();
-}
-function drawGrump(c, t, r, dying) {
-  shape(c, t, r);
-  c.fillStyle = COLORS[t]; c.fill();
-  c.lineJoin = 'round'; c.lineWidth = r * .2; c.strokeStyle = DARK[t]; c.stroke();
-  c.fillStyle = 'rgba(255,255,255,.38)'; c.beginPath(); c.ellipse(-r * .38, -r * .46, r * .28, r * .13, -.6, 0, Math.PI * 2); c.fill();
-  const ey = t === 2 ? r * .12 : -r * .02, ex = r * .32, ink = '#2a1030';
-  c.lineCap = 'round';
+const TAU = Math.PI * 2;
+function face(c, cy, s, dying, light) {
+  const ink = light ? '#dff1ff' : '#2a1030', ex = s * .32;
+  c.save(); c.lineCap = 'round';
   if (dying) {
-    c.strokeStyle = ink; c.lineWidth = r * .11;
-    for (const sx of [-1, 1]) { const cx = sx * ex; c.beginPath(); c.moveTo(cx - r * .12, ey - r * .12); c.lineTo(cx + r * .12, ey + r * .12); c.moveTo(cx + r * .12, ey - r * .12); c.lineTo(cx - r * .12, ey + r * .12); c.stroke(); }
+    c.strokeStyle = ink; c.lineWidth = s * .11;
+    for (const sx of [-1, 1]) { const x = sx * ex; c.beginPath(); c.moveTo(x - s * .12, cy - s * .12); c.lineTo(x + s * .12, cy + s * .12); c.moveTo(x + s * .12, cy - s * .12); c.lineTo(x - s * .12, cy + s * .12); c.stroke(); }
+    c.fillStyle = ink; c.beginPath(); c.ellipse(0, cy + s * .42, s * .13, s * .17, 0, 0, TAU); c.fill();
   } else {
     for (const sx of [-1, 1]) {
-      c.fillStyle = '#fff'; c.beginPath(); c.arc(sx * ex, ey, r * .19, 0, Math.PI * 2); c.fill();
-      c.fillStyle = ink; c.beginPath(); c.arc(sx * ex + (t % 2 ? r * .05 : -r * .05), ey + r * .04, r * .09, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); c.arc(sx * ex, cy, s * .18, 0, TAU); c.fill();
+      c.fillStyle = '#2a1030'; c.beginPath(); c.arc(sx * ex + s * .04, cy + s * .04, s * .085, 0, TAU); c.fill();
     }
-    c.strokeStyle = ink; c.lineWidth = r * .1;
-    for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(sx * (ex + r * .2), ey - r * .34); c.lineTo(sx * (ex - r * .14), ey - r * .2); c.stroke(); }
+    c.strokeStyle = ink; c.lineWidth = s * .1;
+    for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(sx * (ex + s * .2), cy - s * .33); c.lineTo(sx * (ex - s * .14), cy - s * .19); c.stroke(); }
+    c.beginPath(); c.arc(0, cy + s * .62, s * .24, Math.PI * 1.2, Math.PI * 1.8); c.stroke();
   }
-  const my = ey + r * .42;
-  if (dying || t === 1 || t === 4) { c.fillStyle = ink; c.beginPath(); c.ellipse(0, my, r * .13, dying ? r * .17 : r * .1, 0, 0, Math.PI * 2); c.fill(); }
-  else { c.strokeStyle = ink; c.lineWidth = r * .1; c.beginPath(); c.arc(0, my + r * .2, r * .24, Math.PI * 1.2, Math.PI * 1.8); c.stroke(); }
+  c.restore();
 }
-function drawBomb(c, r, id) {
-  const g = c.createRadialGradient(-r * .3, -r * .3, r * .1, 0, 0, r * 1.1);
-  g.addColorStop(0, '#6a4a9c'); g.addColorStop(1, '#140a22');
-  c.fillStyle = g; c.beginPath(); c.arc(0, 0, r * 1.05, 0, Math.PI * 2); c.fill();
-  for (let i = 0; i < 12; i++) {
-    const an = i * 2.4 + id * .7, d = r * (.28 + .55 * ((i * 37) % 10) / 10);
-    c.save(); c.translate(Math.cos(an) * d, Math.sin(an) * d); c.rotate(an * 3);
-    c.fillStyle = COLORS[i % 6]; c.fillRect(-r * .13, -r * .045, r * .26, r * .09); c.restore();
+function drawCrack(c, r) {
+  c.save(); c.strokeStyle = '#ffffff'; c.lineWidth = r * .08; c.lineCap = 'round'; c.lineJoin = 'round';
+  c.beginPath(); c.moveTo(-r * .9, -r * .6); c.lineTo(-r * .25, -r * .1); c.lineTo(-r * .45, r * .25); c.lineTo(r * .2, r * .15); c.lineTo(r * .85, r * .75);
+  c.moveTo(-r * .25, -r * .1); c.lineTo(r * .1, -r * .85); c.stroke(); c.restore();
+}
+/* 0 assiette · 1 vase · 2 écran · 3 imprimante · 4 téléphone · 5 ampoule */
+function drawObj(c, t, r, dying) {
+  const col = COLORS[t], dk = DARK[t];
+  c.lineJoin = 'round'; c.lineWidth = r * .14; c.strokeStyle = dk;
+  switch (t) {
+    case 0:
+      c.fillStyle = '#f7efe4'; c.beginPath(); c.arc(0, 0, r * 1.05, 0, TAU); c.fill();
+      c.lineWidth = r * .2; c.strokeStyle = col; c.beginPath(); c.arc(0, 0, r * .93, 0, TAU); c.stroke();
+      c.lineWidth = r * .05; c.strokeStyle = '#d9c8b4'; c.beginPath(); c.arc(0, 0, r * .6, 0, TAU); c.stroke();
+      face(c, -r * .05, r * .8, dying); break;
+    case 1:
+      c.beginPath(); c.moveTo(-r * .34, -r * 1.02); c.lineTo(r * .34, -r * 1.02); c.lineTo(r * .2, -r * .72);
+      c.bezierCurveTo(r * 1.08, -r * .45, r, r * .78, r * .36, r * 1.02); c.lineTo(-r * .36, r * 1.02);
+      c.bezierCurveTo(-r, r * .78, -r * 1.08, -r * .45, -r * .2, -r * .72); c.closePath();
+      c.fillStyle = col; c.fill(); c.stroke();
+      c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(-r * .74, r * .6, r * 1.48, r * .11);
+      face(c, r * .05, r * .78, dying); break;
+    case 2:
+      c.fillStyle = dk; c.fillRect(-r * .14, r * .5, r * .28, r * .35); c.beginPath(); rr(c, -r * .5, r * .8, r, r * .2, r * .08); c.fill();
+      c.beginPath(); rr(c, -r * 1.08, -r * .85, r * 2.16, r * 1.42, r * .16); c.fillStyle = col; c.fill(); c.stroke();
+      c.beginPath(); rr(c, -r * .88, -r * .67, r * 1.76, r * 1.06, r * .08); c.fillStyle = '#0f1b33'; c.fill();
+      face(c, -r * .2, r * .72, dying, true); break;
+    case 3:
+      c.beginPath(); rr(c, -r * .55, -r * 1.05, r * 1.1, r * .9, r * .05); c.fillStyle = '#ffffff'; c.fill();
+      c.lineWidth = r * .06; c.strokeStyle = '#c9c0d6'; c.stroke();
+      c.lineWidth = r * .14; c.strokeStyle = dk; c.beginPath(); rr(c, -r * 1.05, -r * .35, r * 2.1, r * 1.15, r * .2); c.fillStyle = col; c.fill(); c.stroke();
+      c.fillStyle = dk; c.fillRect(-r * .6, r * .52, r * 1.2, r * .1);
+      face(c, -r * .02, r * .72, dying); break;
+    case 4:
+      c.beginPath(); rr(c, -r * .66, -r * 1.08, r * 1.32, r * 2.16, r * .24); c.fillStyle = col; c.fill(); c.stroke();
+      c.beginPath(); rr(c, -r * .5, -r * .86, r, r * 1.6, r * .1); c.fillStyle = '#ece2ff'; c.fill();
+      c.fillStyle = dk; c.beginPath(); c.arc(0, r * .93, r * .07, 0, TAU); c.fill();
+      face(c, -r * .12, r * .62, dying); break;
+    default:
+      c.fillStyle = '#9aa0ad'; c.beginPath(); rr(c, -r * .34, r * .42, r * .68, r * .55, r * .08); c.fill();
+      c.strokeStyle = '#6b7080'; c.lineWidth = r * .06;
+      for (const y of [.58, .74, .88]) { c.beginPath(); c.moveTo(-r * .34, r * y); c.lineTo(r * .34, r * y); c.stroke(); }
+      c.lineWidth = r * .14; c.strokeStyle = dk;
+      c.beginPath(); c.arc(0, -r * .2, r * .82, Math.PI * .78, Math.PI * 2.22); c.lineTo(r * .3, r * .45); c.lineTo(-r * .3, r * .45); c.closePath();
+      c.fillStyle = col; c.fill(); c.stroke();
+      face(c, -r * .22, r * .7, dying);
   }
+  if (t) { c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.ellipse(-r * .45, -r * .5, r * .18, r * .08, -.7, 0, TAU); c.fill(); }
+  if (dying) drawCrack(c, r);
 }
+/* Boule de démolition : née d'un alignement de 5 */
+function drawBomb(c, r) {
+  c.strokeStyle = '#b8bcc6'; c.lineWidth = r * .09;
+  c.beginPath(); c.moveTo(0, -r * 1.25); c.lineTo(0, -r * .95); c.stroke();
+  c.beginPath(); c.ellipse(0, -r * 1.02, r * .1, r * .16, 0, 0, TAU); c.stroke();
+  const g = c.createRadialGradient(-r * .35, -r * .35, r * .08, 0, 0, r * 1.05);
+  g.addColorStop(0, '#c9ccd4'); g.addColorStop(.45, '#6b6f7a'); g.addColorStop(1, '#1f2026');
+  c.fillStyle = g; c.beginPath(); c.arc(0, r * .05, r * .95, 0, TAU); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.ellipse(-r * .38, -r * .3, r * .2, r * .1, -.7, 0, TAU); c.fill();
+}
+/* Fissure électrique (alignement de 4) ou dynamite (alignement en L ou en T) */
 function drawSpecial(c, s, r) {
-  c.save();
+  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
   if (s === 'x') {
-    c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = r * .14; c.shadowColor = '#fff'; c.shadowBlur = r * .6;
-    c.beginPath(); c.arc(0, 0, r * 1.2, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = '#ffd23f'; c.lineWidth = r * .14; c.shadowColor = '#ff8a1f'; c.shadowBlur = r * .7;
+    c.beginPath(); c.arc(0, 0, r * 1.2, 0, TAU); c.stroke();
+    c.shadowBlur = 0; c.fillStyle = '#e8322e'; c.fillRect(r * .55, -r * 1.12, r * .32, r * .58);
+    c.strokeStyle = '#ffd23f'; c.lineWidth = r * .06; c.beginPath(); c.moveTo(r * .71, -r * 1.12); c.lineTo(r * .86, -r * 1.32); c.stroke();
   } else {
-    c.fillStyle = 'rgba(255,255,255,.62)';
-    for (const o of [-.5, 0, .5]) { if (s === 'h') c.fillRect(-r, o * r - r * .06, r * 2, r * .12); else c.fillRect(o * r - r * .06, -r, r * .12, r * 2); }
+    const zig = () => {
+      c.beginPath();
+      for (let i = 0; i <= 8; i++) {
+        const a = -r * 1.05 + i * r * 2.1 / 8, b = i % 2 ? r * .13 : -r * .13;
+        if (s === 'h') { i ? c.lineTo(a, b) : c.moveTo(a, b); } else { i ? c.lineTo(b, a) : c.moveTo(b, a); }
+      }
+      c.stroke();
+    };
+    c.strokeStyle = '#2a1030'; c.lineWidth = r * .26; zig();
+    c.strokeStyle = '#7fe9ff'; c.lineWidth = r * .12; zig();
   }
   c.restore();
 }
@@ -392,7 +442,7 @@ function drawCandy(c, t, s, x, y, size, opt = {}) {
   const r = size * .37, sc = opt.sc == null ? 1 : opt.sc;
   if (sc <= 0) return;
   c.save(); c.translate(x, y); c.scale(sc, sc);
-  if (t === 6) drawBomb(c, r, opt.id || 0);
+  if (t === 6) drawBomb(c, r);
   else {
     const sk = SKIN[opt.skin || save.skin] || SKINS[0];
     if (sk.emoji) {
@@ -400,7 +450,7 @@ function drawCandy(c, t, s, x, y, size, opt = {}) {
       if (opt.dying) c.rotate((1 - sc) * 2.5);
       c.font = Math.round(size * .66) + 'px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
       c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(sk.emoji[t], 0, size * .04);
-    } else drawGrump(c, t, r, opt.dying);
+    } else drawObj(c, t, r, opt.dying);
   }
   if (s) drawSpecial(c, s, r);
   c.restore();
@@ -506,7 +556,7 @@ async function doClear(keys, creations, combo, opt = {}) {
   const any = [...all][Math.floor(Math.random() * all.size)];
   floatText((any % N + .5) * CS, (Math.floor(any / N) + .2) * CS, pick(SCREAMS), '#ffffff', 15);
   floatText((sx / n + .5) * CS, (sy / n + .6) * CS, '+' + fmt(pts), '#ffd23f', 22);
-  sfx.pop(combo);
+  sfx.shatter(combo);
   if (n >= 8 || specials) { if (!RM) shake = Math.max(shake, Math.min(16, 4 + n * .5)); sfx.boom(); buzz(35); } else buzz(12);
   for (const o of creations) { const cell = mk(o.t, o.r, o.c, o.s); cell.sc = .2; grid[o.r][o.c] = cell; }
   await sleep(170);
@@ -562,7 +612,7 @@ async function trySwap(r1, c1, r2, c2) {
     useMove();
     const bomb = a.t === 6 ? a : b, other = a.t === 6 ? b : a, keys = new Set([bomb.tr * N + bomb.tc]);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const g = grid[y][x]; if (g && (other.t === 6 || g.t === other.t)) keys.add(y * N + x); }
-    say('BOOM. Couleur pulvérisée.');
+    say('Boule de démolition ! Tout y passe.');
     if (!RM) shake = 14;
     await doClear(keys, [], 1, { bombHandled: true, mult: 1.5 });
     await resolveLoop();
@@ -592,7 +642,7 @@ async function hammerAt(r, c) {
 async function megaCrush() {
   if (busy || !G || G.mode !== 'rage' || G.rage < 100) return;
   busy = true; G.rage = 0; updateHud();
-  say('MÉGA CRUSH !!!');
+  say('MÉGA CASSE !!!');
   if (!RM) shake = 24; sfx.boom(); setTimeout(sfx.boom, 160); buzz(80);
   const keys = new Set(range(0, N * N));
   await doClear(keys, [], 1, { mult: 2 });
@@ -624,10 +674,11 @@ function checkEnd() {
 
 /* ---------- Effets ---------- */
 function burst(cell) {
-  const cx = (cell.x + .5) * CS, cy = (cell.y + .5) * CS, k = RM ? 3 : 9;
+  const cx = (cell.x + .5) * CS, cy = (cell.y + .5) * CS, k = RM ? 4 : 11;
+  const col = cell.t === 6 ? '#6b6f7a' : COLORS[cell.t];
   for (let i = 0; i < k; i++) {
-    const an = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 200;
-    parts.push({ x: cx, y: cy, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp - 80, life: .6 + Math.random() * .3, col: cell.t === 6 ? COLORS[i % 6] : COLORS[cell.t], sz: 2 + Math.random() * 4 });
+    const an = Math.random() * Math.PI * 2, sp = 80 + Math.random() * 240;
+    parts.push({ x: cx, y: cy, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp - 120, life: .7 + Math.random() * .4, col: i % 3 ? col : '#ffffff', sz: CS * (.07 + Math.random() * .13), rot: Math.random() * 6, vr: (Math.random() - .5) * 18, shard: true });
   }
 }
 function confetti() {
@@ -661,9 +712,9 @@ function update(dt) {
     if (Math.abs(c.y - c.tr) < 1e-3) c.y = c.tr;
     if (c.sc < 1) c.sc = Math.min(1, c.sc + dt * 5);
   }
-  for (const d of dying) d.sc -= dt * 5.5;
+  for (const d of dying) d.sc -= dt * 7;
   dying = dying.filter(d => d.sc > 0);
-  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 520 * dt; p.life -= dt; }
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 620 * dt; p.life -= dt; if (p.shard) p.rot += p.vr * dt; }
   parts = parts.filter(p => p.life > 0);
   for (const f of floats) { f.y -= 42 * dt; f.life -= dt * 1.05; }
   floats = floats.filter(f => f.life > 0);
@@ -684,7 +735,14 @@ function draw() {
   ctx.restore();
   if (sel) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 3; ctx.beginPath(); rr(ctx, sel[1] * CS + 3, sel[0] * CS + 3, CS - 6, CS - 6, 10); ctx.stroke(); }
   if (hammerArmed || (freeHammer && G.mode === 'rage')) { ctx.strokeStyle = '#ffd23f'; ctx.setLineDash([10, 8]); ctx.lineWidth = 4; ctx.beginPath(); rr(ctx, 2, 2, W - 4, W - 4, 16); ctx.stroke(); ctx.setLineDash([]); }
-  for (const p of parts) { ctx.globalAlpha = clamp(p.life * 1.6, 0, 1); ctx.fillStyle = p.col; ctx.fillRect(p.x - p.sz / 2, p.y - p.sz / 2, p.sz, p.sz); }
+  for (const p of parts) {
+    ctx.globalAlpha = clamp(p.life * 1.6, 0, 1); ctx.fillStyle = p.col;
+    if (p.shard) {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.beginPath(); ctx.moveTo(0, -p.sz); ctx.lineTo(p.sz * .8, p.sz * .6); ctx.lineTo(-p.sz * .7, p.sz * .45); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    } else ctx.fillRect(p.x - p.sz / 2, p.y - p.sz / 2, p.sz, p.sz);
+  }
   ctx.globalAlpha = 1;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
   for (const f of floats) {
@@ -804,7 +862,7 @@ function updateHud() {
   const icon = $('#goalIcon');
   if (G.mode === 'level') {
     const g = G.goal;
-    $('#hGoalLabel').textContent = g.k === 'score' ? 'Objectif score' : 'À écraser';
+    $('#hGoalLabel').textContent = g.k === 'score' ? 'Objectif score' : 'À casser';
     icon.hidden = g.k !== 'collect';
     if (g.k === 'collect') { paintIcon(icon, g.t); $('#hGoal').textContent = `${Math.min(G.collected, g.n)}/${g.n}`; }
     else $('#hGoal').textContent = fmt(g.n);
@@ -822,7 +880,7 @@ function updateHud() {
     $('#bossFace').textContent = ratio > .66 ? '😏' : ratio > .33 ? '😠' : ratio > .08 ? '😵' : '🥴';
     $('#rageFill').style.width = G.rage + '%';
     const mb = $('#megaBtn'); mb.disabled = G.rage < 100; mb.classList.toggle('ready', G.rage >= 100);
-    mb.textContent = G.rage >= 100 ? 'MÉGA CRUSH 💥 PRÊT' : `MÉGA CRUSH · ${Math.floor(G.rage)} %`;
+    mb.textContent = G.rage >= 100 ? 'MÉGA CASSE 💥 PRÊT' : `MÉGA CASSE · ${Math.floor(G.rage)} %`;
     $('#tFree').textContent = '🔨 Marteau infini : ' + (freeHammer ? 'oui' : 'non');
     $('#tFree').classList.toggle('on', freeHammer);
   }
@@ -832,7 +890,7 @@ function updateHud() {
   $('#gMute').textContent = save.muted ? '🔇' : '🔊';
 }
 
-$('#tHammer').onclick = () => { if (busy || !G || G.over) return; if (!hammerArmed && save.boosters.hammer <= 0) return; hammerArmed = !hammerArmed; if (hammerArmed) say('Touche un bonbon pour l’écraser.'); updateHud(); };
+$('#tHammer').onclick = () => { if (busy || !G || G.over) return; if (!hammerArmed && save.boosters.hammer <= 0) return; hammerArmed = !hammerArmed; if (hammerArmed) say('Touche un objet pour le casser.'); updateHud(); };
 $('#tShuffle').onclick = async () => {
   if (busy || !G || G.over || save.boosters.shuffle <= 0) return;
   save.boosters.shuffle--; persist(); busy = true; updateHud(); say('Mélange !');
@@ -891,7 +949,7 @@ function winLevel() {
 }
 function loseLevel() {
   const i = G.level, g = G.goal;
-  const prog = g.k === 'score' ? `${fmt(G.score)} / ${fmt(g.n)} pts` : `${G.collected} / ${g.n} écrasés`;
+  const prog = g.k === 'score' ? `${fmt(G.score)} / ${fmt(g.n)} pts` : `${G.collected} / ${g.n} cassés`;
   sfx.sad();
   modal(`<h3>Plus de coups</h3><p>${esc(pick(LOSES))}</p><div class="big">${prog}</div>
     ${G.usedReward ? '' : '<button class="btn lemon" data-act="ad">📺 +5 coups en regardant une pub</button>'}
@@ -907,7 +965,7 @@ function loseLevel() {
 function shareText() {
   const d = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
   const sq = clamp(Math.round(G.score / 1200), 0, 5);
-  return `Crush ta Rage · Défi du ${d}\n🍬 ${fmt(G.score)} pts en 20 coups\n💥 Meilleur combo x${G.bestCombo}\n${'🟨'.repeat(sq)}${'⬛'.repeat(5 - sq)}`;
+  return `Casse Tout · Défi du ${d}\n💥${fmt(G.score)} pts en 20 coups\n💥 Meilleur combo x${G.bestCombo}\n${'🟨'.repeat(sq)}${'⬛'.repeat(5 - sq)}`;
 }
 function endDaily() {
   const best = save.daily[G.key] || 0, record = G.score > best;
@@ -940,7 +998,7 @@ function rageSetup() {
     <label class="fine" for="rageInput">Ou écris le tien (20 caractères max)</label>
     <input id="rageInput" maxlength="20" autocomplete="off" placeholder="Ex. : mon voisin bruyant">
     <p class="fine">Ça reste sur ton téléphone. Rien n’est partagé.</p>
-    <div class="row"><button class="btn" data-act="go">ÉCRASER 💥</button><button class="btn alt" data-act="cancel">Annuler</button></div>`,
+    <div class="row"><button class="btn" data-act="go">CASSER 💥</button><button class="btn alt" data-act="cancel">Annuler</button></div>`,
   (act, b) => {
     if (act === 'chip') { chosen = b.dataset.v; $('#rageInput').value = ''; document.querySelectorAll('.chips button').forEach(x => x.classList.toggle('on', x === b)); return; }
     closeModal();
@@ -956,7 +1014,7 @@ function bossDown() {
   $('#bossFace').textContent = '💀';
   modal(`<h3>K.O. !</h3><div class="big">🪦</div><p>${esc(pick(EPITAPHS).replace('{X}', name.toUpperCase()))}</p>
     <p class="fine">${fmt(G.score)} pts de dégâts · meilleur combo x${G.bestCombo}</p><p><b>+1 🔨 Marteau gagné</b></p>
-    <div class="row"><button class="btn" data-act="again">Écraser autre chose</button><button class="btn alt" data-act="home">Accueil</button></div>`,
+    <div class="row"><button class="btn" data-act="again">Casser autre chose</button><button class="btn alt" data-act="home">Accueil</button></div>`,
   act => { closeModal(); if (act === 'again') rageSetup(); else show('home'); });
 }
 
