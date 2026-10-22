@@ -1,0 +1,15 @@
+{
+  "name": "Tous Dehors",
+  "short_name": "Tous Dehors",
+  "description": "Puzzle de flèches : libère toutes les bestioles sans créer de bouchon.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1b1640",
+  "theme_color": "#1b1640",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
