@@ -49,6 +49,23 @@ Un niveau « difficile » tous les 5 niveaux, suivi d'un niveau « respiration �
 | Skins | 0,99 € à 1,99 €, cosmétiques, boutique du jour avec compte à rebours réel |
 | Indices | Jamais vendus : 3 au départ, +1 toutes les 3 victoires, +2 par chapitre, +1 par défi du jour |
 
+## Direction artistique
+
+Inspirée des codes visuels publics des puzzles du top (Royal Match, Block Blast, Candy Crush), pas de leur code, qui n'est pas public :
+
+| Élément | Choix |
+|---|---|
+| Fond | Ciel clair et saturé, halos qui dérivent (shader WebGL) |
+| Titres | Blanc détouré de bleu nuit, ombre portée pleine |
+| Panneaux | Bleu dégradé, bordure foncée, reflet en haut, ombre pleine en bas |
+| Boutons | En relief (dégradé, reflet, tranche colorée, contour foncé), s'enfoncent au toucher ; vert = jouer, or = récompense ou achat, bleu = secondaire, rouge = échec |
+| Bandeaux | Rubans posés à cheval sur le haut des panneaux et des fenêtres |
+| Plateau | Cadre bleu et cases en creux, pré-rendu une fois par niveau |
+| Accueil | Compteurs en pastilles (étoiles, indices, série), carte du chapitre en serpentin, gros bouton « Niveau N » qui respire, barre d'onglets en bas |
+| Jeu | Médaillon de niveau doré, cœurs dessinés, barre de progression, boutons bonus ronds avec pastille de compte |
+| Victoire | Ruban vert, rayons lumineux tournants, étoiles qui tombent une à une avec un son qui monte, récompenses en lignes |
+| Icônes | Jeu d'icônes SVG maison, identique sur tous les téléphones |
+
 ## Pistes pour la suite
 
 - Nouvelles mécaniques : bestioles endormies (2 touches), glace (glisse puis s'arrête), tunnels.

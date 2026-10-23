@@ -30,7 +30,33 @@ export function createBoardRenderer(canvas, { reducedMotion = false } = {}) {
       view.bx = Math.round((view.W - view.bw) / 2); view.by = Math.round((view.H - view.bh) / 2);
     }
     sprites.clear();
+    tray = rows && cols ? buildTray(rows, cols) : null;
     view.rect = canvas.getBoundingClientRect();
+  }
+
+  /* Plateau pré-rendu une fois par niveau : cadre bleu bordé et cases en creux. */
+  let tray = null;
+  function buildTray(rows, cols) {
+    const { cs, bw, bh, dpr } = view, pad = Math.max(8, cs * 0.16), rad = Math.max(16, cs * 0.4);
+    const W = bw + pad * 2, H = bh + pad * 2;
+    const cnv = document.createElement('canvas');
+    cnv.width = Math.ceil((W + 8) * dpr); cnv.height = Math.ceil((H + 12) * dpr);
+    const c = cnv.getContext('2d'); c.scale(dpr, dpr); c.translate(4, 2);
+    roundRect(c, 0, 6, W, H, rad); c.fillStyle = 'rgba(10,18,70,.45)'; c.fill();
+    roundRect(c, 0, 0, W, H, rad);
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#3552c4'); g.addColorStop(1, '#22359a');
+    c.fillStyle = g; c.fill(); c.lineWidth = 3; c.strokeStyle = '#142170'; c.stroke();
+    roundRect(c, 3, 3, W - 6, H - 6, rad - 3); c.strokeStyle = 'rgba(255,255,255,.22)'; c.lineWidth = 2; c.stroke();
+    const inset = Math.max(2, cs * 0.05), cr = Math.max(6, cs * 0.18);
+    for (let r = 0; r < rows; r++) for (let col = 0; col < cols; col++) {
+      const x = pad + col * cs + inset, y = pad + r * cs + inset, w = cs - inset * 2;
+      roundRect(c, x, y, w, w, cr); c.fillStyle = 'rgba(8,14,56,.42)'; c.fill();
+      c.save(); roundRect(c, x, y, w, w, cr); c.clip();
+      c.fillStyle = 'rgba(0,0,0,.22)'; c.fillRect(x, y, w, Math.max(2, cs * 0.07));
+      c.fillStyle = 'rgba(255,255,255,.10)'; c.fillRect(x, y + w - Math.max(2, cs * 0.05), w, Math.max(2, cs * 0.05));
+      c.restore();
+    }
+    return { cnv, pad, w: W + 8, h: H + 12 };
   }
 
   const kx = k => view.bx + (k.c + 0.5 + (k.ox || 0)) * view.cs;
@@ -47,14 +73,7 @@ export function createBoardRenderer(canvas, { reducedMotion = false } = {}) {
     ctx.clearRect(0, 0, W, H);
     if (shake) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
-    const pad = Math.max(6, cs * 0.14);
-    roundRect(ctx, bx - pad, by - pad, bw + pad * 2, bh + pad * 2, Math.max(14, cs * 0.38));
-    ctx.fillStyle = 'rgba(255,255,255,.075)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,.10)';
-    for (let r = 0; r < s.rows; r++) for (let c = 0; c < s.cols; c++) {
-      ctx.beginPath(); ctx.arc(bx + (c + 0.5) * cs, by + (r + 0.5) * cs, Math.max(1.5, cs * 0.045), 0, TAU); ctx.fill();
-    }
+    if (tray) ctx.drawImage(tray.cnv, bx - tray.pad - 4, by - tray.pad - 2, tray.w, tray.h);
 
     const px = Math.round(cs * dpr);
     const rockSpr = sprites.rock(px), RS = rockSpr.width / dpr;
@@ -94,7 +113,7 @@ export function createBoardRenderer(canvas, { reducedMotion = false } = {}) {
       ctx.globalAlpha = clamp(f.life * 1.6, 0, 1);
       ctx.font = `700 ${Math.round(f.size)}px Fredoka, "Arial Rounded MT Bold", sans-serif`;
       const tw = ctx.measureText(f.text).width, x = clamp(f.x, tw / 2 + 8, W - tw / 2 - 8);
-      ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(20,8,40,.85)'; ctx.strokeText(f.text, x, f.y);
+      ctx.lineWidth = 6; ctx.strokeStyle = '#10205c'; ctx.strokeText(f.text, x, f.y);
       ctx.fillStyle = f.col; ctx.fillText(f.text, x, f.y);
     }
     ctx.globalAlpha = 1;

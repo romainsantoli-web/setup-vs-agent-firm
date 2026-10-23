@@ -47,5 +47,7 @@ export function createSfx(isMuted) {
     sad: () => [440, 370, 294].forEach((f, i) => tone(f, f * 0.97, 0.32, 'triangle', 0.12, i * 0.2)),
     cash() { tone(880, 1320, 0.1, 'triangle', 0.12); tone(1320, 1760, 0.16, 'triangle', 0.12, 0.09); },
     hint: () => tone(988, 1480, 0.18, 'sine', 0.1),
+    star: i => { const f = 784 * Math.pow(1.26, i); tone(f, f * 1.5, 0.16, 'triangle', 0.13); tone(f * 2, f * 2.5, 0.12, 'sine', 0.05, 0.03); },
+    click: () => tone(520, 420, 0.05, 'triangle', 0.06),
   };
 }

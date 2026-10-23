@@ -1,91 +1,107 @@
 <title>Tous Dehors</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="theme-color" content="#1b1640">
+<meta name="theme-color" content="#3a5bd9">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800;900&display=swap">
 <link rel="stylesheet" href="styles/app.css">
 
 <canvas id="bg" aria-hidden="true"></canvas>
 <div id="app">
-  <section id="scrHome" class="scr">
-    <canvas id="heroCv" aria-hidden="true"></canvas>
-    <h1 class="logo">Tous<br>dehors !</h1>
-    <p class="tag">Tape une bestiole : elle file tout droit. Libère-les toutes sans créer de bouchon.</p>
 
-    <div class="rank">
-      <div class="rankhead"><b id="rankName">Stagiaire de l’évacuation</b><span id="rankStars">0 ★</span></div>
-      <div class="meter"><i id="rankBar"></i></div>
-      <div class="rankfoot"><small id="rankNext">Prochain rang à 15 ★</small><small id="streak">🔥 Série : 0</small></div>
+  <!-- ACCUEIL -->
+  <section id="scrHome" class="scr home">
+    <header class="topbar">
+      <span class="stat"><i data-ico="star" class="gold"></i><b id="statStars">0</b></span>
+      <span class="stat"><i data-ico="bulb" class="yellow"></i><b id="statHints">3</b></span>
+      <span class="stat streak" id="statStreak"><i data-ico="fire" class="orange"></i><b>0</b></span>
+      <span class="grow"></span>
+      <button class="roundbtn" id="settingsBtn" type="button" aria-label="Réglages"><i data-ico="gear"></i></button>
+    </header>
+
+    <div class="hero">
+      <canvas id="heroCv" aria-hidden="true"></canvas>
+      <h1 class="logo outlined">Tous<br>dehors !</h1>
     </div>
 
-    <div class="chapter">
-      <small id="chapterName">Chapitre 1 · Le Salon</small>
-      <div class="pips" id="chapterPips" aria-hidden="true"></div>
-    </div>
-    <button class="btn" id="playBtn" type="button">Jouer · Niveau 1</button>
-
-    <div class="grid2">
-      <button class="tile" data-go="daily" type="button"><b>Défi du jour</b><small id="dailyInfo">Même grille pour tout le monde</small></button>
-      <button class="tile" data-go="shop" type="button"><b>Boutique</b><small>Change dans <span id="homeShopTimer">--:--:--</span></small></button>
-    </div>
     <div id="homeEvent" class="event" hidden>
-      <div><b>🎃 Citrouilles Maudites</b><span>Événement Halloween · encore <span id="homeEventLeft">--</span></span></div>
-      <button class="btn small" data-go="shop" type="button">Voir</button>
+      <span class="event-emoji" aria-hidden="true">🎃</span>
+      <div class="event-text"><b>Citrouilles Maudites</b><span>Fin dans <span id="homeEventLeft">--</span></span></div>
+      <button class="btn gold small" data-go="shop" type="button">Voir</button>
     </div>
-    <div class="toggles">
-      <button class="chipbtn" id="soundBtn" type="button">🔊 Son</button>
-      <button class="chipbtn" id="hapticBtn" type="button">📳 Vibrations</button>
-    </div>
-    <div class="rules">
-      <h3>Les règles de la maison</h3>
-      <ul>
-        <li>3 cœurs par niveau. Rejouer est toujours gratuit.</li>
-        <li>Les indices se gagnent en jouant. Ils ne s’achètent jamais.</li>
-        <li>Pubs « +1 cœur » au choix. Au plus une pub imposée tous les 3 niveaux, et aucune avant le niveau 11.</li>
-        <li>Skins 100 % cosmétiques, prix affichés en euros.</li>
-      </ul>
-    </div>
-    <p class="fine">Prototype : achats et pubs simulés. ⚠️ Contenu généré par IA — validation humaine requise avant utilisation.</p>
+
+    <section class="panel map" aria-labelledby="chapterName">
+      <div class="ribbon"><span id="chapterName">Chapitre 1 · Le Salon</span></div>
+      <svg id="levelPath" class="path" viewBox="0 0 320 132" role="img" aria-label="Progression du chapitre"></svg>
+      <div class="rank">
+        <div class="rank-line"><b id="rankName">Stagiaire de l’évacuation</b><small id="rankNext">Prochain rang à 15</small></div>
+        <div class="meter"><i id="rankBar"></i></div>
+      </div>
+    </section>
+
+    <button class="btn green xl" id="playBtn" type="button"><span id="playLabel">Niveau 1</span><i data-ico="play"></i></button>
+    <p class="fine center">Prototype : achats et pubs simulés. ⚠️ Contenu généré par IA — validation humaine requise avant utilisation.</p>
   </section>
 
-  <section id="scrGame" class="scr" hidden>
-    <header class="bar">
-      <button class="ibtn" id="backBtn" type="button" aria-label="Retour à l’accueil">←</button>
-      <div class="gtitle"><b id="gTitle">Niveau 1</b><small id="gSub">Chapitre 1 · Le Salon</small></div>
-      <button class="ibtn" id="restartBtn" type="button" aria-label="Recommencer le niveau">↻</button>
+  <!-- JEU -->
+  <section id="scrGame" class="scr game" hidden>
+    <header class="panel gamebar">
+      <button class="roundbtn small" id="backBtn" type="button" aria-label="Retour à l’accueil"><i data-ico="back"></i></button>
+      <div class="lvlbadge"><small id="gKicker">Niveau</small><b id="gTitle">1</b></div>
+      <div class="gamebar-mid">
+        <div class="hearts" id="hearts" aria-label="Cœurs restants"><i data-ico="heart"></i><i data-ico="heart"></i><i data-ico="heart"></i></div>
+        <small id="gSub">Chapitre 1 · Le Salon</small>
+      </div>
+      <span class="chip time"><i data-ico="clock"></i><b id="gTimer">0:00</b></span>
     </header>
-    <div class="hud">
-      <div class="hearts" id="hearts" aria-label="Cœurs restants"><i>♥</i><i>♥</i><i>♥</i></div>
+    <div class="panel goal">
+      <span class="goal-label">À libérer</span>
+      <div class="meter goal-meter"><i id="gBar"></i></div>
+      <b id="gLeft" class="goal-count">0 / 0</b>
       <span class="badge hard" id="badgeHard" hidden>Difficile</span>
-      <span class="badge shield" id="badgeShield" hidden>🛡️ Bouclier</span>
-      <span class="spacer"></span>
-      <span class="pill" id="gLeft">0 / 0</span>
-      <span class="pill" id="gTimer">⏱ 0:00</span>
+      <span class="badge shield" id="badgeShield" hidden><i data-ico="shield"></i>Bouclier</span>
     </div>
     <div id="stage">
       <canvas id="cv" aria-label="Plateau : touche une bestiole pour qu’elle sorte dans la direction de son nez"></canvas>
       <p id="tip" class="tip" hidden></p>
     </div>
-    <div class="tools"><button class="btn alt" id="hintBtn" type="button">💡 Indice ×3</button></div>
+    <div class="boosters">
+      <button class="booster" id="hintBtn" type="button" aria-label="Utiliser un indice">
+        <span class="booster-face"><i data-ico="bulb"></i></span><span class="count" id="hintCount">3</span><small>Indice</small>
+      </button>
+      <button class="booster" id="restartBtn" type="button" aria-label="Recommencer le niveau">
+        <span class="booster-face blue"><i data-ico="restart"></i></span><small>Rejouer</small>
+      </button>
+    </div>
   </section>
 
-  <section id="scrShop" class="scr" hidden>
-    <header class="bar"><button class="ibtn" data-go="home" type="button" aria-label="Retour">←</button><div class="gtitle"><b>Boutique</b></div><span style="width:46px"></span></header>
+  <!-- BOUTIQUE -->
+  <section id="scrShop" class="scr shop" hidden>
+    <header class="pagehead"><h2 class="outlined">Boutique</h2></header>
     <div id="shopEvent" class="cards"></div>
-    <div class="shophead"><h3>Boutique du jour</h3><span class="timer">Change dans <b id="shopTimer">--:--:--</b></span></div>
-    <div id="shopDaily" class="cards"></div>
-    <h3>Autres offres</h3>
+    <div class="panel shoprow">
+      <div class="ribbon small"><span>Boutique du jour</span></div>
+      <p class="timer">Change dans <b id="shopTimer">--:--:--</b></p>
+      <div id="shopDaily" class="cards"></div>
+    </div>
     <div id="shopOther" class="cards"></div>
-    <h3>Mes skins</h3>
-    <div id="shopOwned" class="owned"></div>
-    <p class="fine">Prix en euros, sans monnaie virtuelle ni tirage au sort. Aucun skin ne donne d’avantage en jeu. Prototype : aucun paiement réel.</p>
+    <div class="panel">
+      <h3 class="subhead">Mes skins</h3>
+      <div id="shopOwned" class="owned"></div>
+    </div>
+    <p class="fine center">Prix en euros, sans monnaie virtuelle ni tirage au sort. Aucun skin ne donne d’avantage en jeu. Prototype : aucun paiement réel.</p>
   </section>
+
+  <nav class="tabbar" id="tabbar" aria-label="Navigation">
+    <button class="tab" data-go="shop" type="button"><i data-ico="shop"></i><span>Boutique</span></button>
+    <button class="tab" data-go="home" type="button"><i data-ico="home"></i><span>Accueil</span></button>
+    <button class="tab" data-go="daily" type="button"><i data-ico="calendar"></i><span>Défi du jour</span><em class="dot" id="dailyDot" hidden></em></button>
+  </nav>
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
-<div id="modal" hidden><div class="box" id="modalBox" role="dialog" aria-modal="true"></div></div>
+<div id="modal" hidden><div class="rays" aria-hidden="true"></div><div class="box" id="modalBox" role="dialog" aria-modal="true"></div></div>
 <div id="ad" hidden><div class="adbox"><span class="adtag">PUBLICITÉ (SIMULÉE)</span><div class="adbody" id="adBody"></div><button class="btn gold" id="adBtn" type="button" disabled>…</button></div></div>
 <div id="toast" hidden></div>
 <script type="module" src="src/main.js"></script>

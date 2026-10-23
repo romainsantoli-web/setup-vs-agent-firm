@@ -4,9 +4,10 @@ export const $$ = s => Array.from(document.querySelectorAll(s));
 
 export const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
-export function openModal(html, onAction) {
+export function openModal(html, onAction, { celebrate = false } = {}) {
   const box = $('#modalBox');
   box.innerHTML = html;
+  $('#modal').classList.toggle('celebrate', celebrate);
   $('#modal').hidden = false;
   box.onclick = e => { const b = e.target.closest('[data-act]'); if (b) onAction(b.dataset.act, b); };
   const first = box.querySelector('button');

@@ -38,6 +38,7 @@ games/tous-dehors/
 │   │   └── board.js        plateau Canvas 2D
 │   ├── audio/sfx.js        sons synthétisés en WebAudio
 │   ├── ui/dom.js           fenêtres, toasts, pub simulée
+│   ├── ui/icons.js         icônes SVG maison (pas d'emoji dans l'interface)
 │   ├── services/leaderboard.js  classement (local, interface remplaçable)
 │   └── config/             skins et textes (fr)
 ├── tests/                  node:test, sans dépendance
